@@ -1,0 +1,11 @@
+numpy==1.26.4
+pandas==2.2.0
+openpyxl==3.1.2 # reads .xlsx files (modern Excel format)
+xlrd==2.0.1 # reads .xls files (legacy Excel format)
+python-dotenv==1.0.0
+
+
+uuid_utils==0.14.0
+
+# MongoDB
+pymongo==4.6.1

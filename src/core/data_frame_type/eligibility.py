@@ -1,0 +1,153 @@
+ELIGIBILITY_ETL_DATA_FRAME_TYPE = {
+    "EL_ENROLLEE_ID": str,
+    "PRODUCT_ID": str,
+    "EFFECTIVE_DATE": str,
+    "TERMINATION_DATE": str,
+    "SUBSCRIBER_ID": str,
+    "MEMBER_ID": str,
+    "PREMIUM_GROUP_ID": str,
+    "PREMIUM_GROUP_DEPARTMENT_ID": str,
+    "EL_INSURED_ENROLLEE_ID": str,
+    "EMPLOYMENT_STATUS": str,
+    "EFFECTIVE_DATE": str,
+    "TERMINATION_DATE": str,
+    "RELATIONSHIP_CODE": str,
+    "STUDENT_STATUS_CODE": str,
+    "HANDICAP_FLAG": str,
+    "LEVEL_OF_CARE_ID": str,
+    "LATE_ENROLLEE_FLAG": str,
+    "WAITING_PERIOD_CREDIT": str,
+    "ADD_REASON_CODE": str,
+    "ADD_REASON_EVENT_DATE": str,
+    "TERMINATION_REASON_CODE": str,
+    "TERMINATION_REASON_EVENT_DATE": str,
+    "EL_NOTES": str,
+    "CLIENT_MCO_ID": str,
+    "CLIENT_PROGRAM_CODE": str,
+    "CLIENT_RATE_CODE": str,
+    "OTHER_INFO1": str,
+    "OTHER_INFO2": str,
+    "OTHER_INFO3": str,
+    "EL_CREATION_DATE": str,
+    "EL_DOMAIN_SOURCE_ID": str,
+    "EL_LAST_MODIFIED_DATE_TIME": str,
+    "PAID_THROUGH_DATE": str,
+    "PAID_THROUGH_GRACE_PERIOD": str,
+    "HASH": str,
+    "EN_ENROLLEE_ID": str,
+    "LAST_NAME": str,
+    "FIRST_NAME": str,
+    "MIDDLE_NAME": str,
+    "NAME_PREFIX": str,
+    "NAME_SUFFIX": str,
+    "ADDRESS1": str,
+    "ADDRESS2": str,
+    "CITY": str,
+    "STATE": str,
+    "ZIP": str,
+    "ZIP_4": str,
+    "COUNTY_ID": str,
+    "ADDRESS_CODE": str,
+    "EMAIL": str,
+    "DOB": str,
+    "BIRTH_SEQUENCE": str,
+    "DEATH_DATE": str,
+    "GENDER": str,
+    "ETHNICITY_CODE": str,
+    "CITIZENSHIP_STATUS_CODE": str,
+    "SS_NUMBER": str,
+    "EN_NOTES": str,
+    "TERMINATION_DATE": str,
+    "EOB_COMMUNICATION_METHOD": str,
+    "ID_CARD_COMMUNICATION_METHOD": str,
+    "LETTER_COMMUNICATION_METHOD": str,
+    "EN_DOMAIN_SOURCE_ID": str,
+}
+
+
+ENROLLEE_COLS = [
+    "EN_ENROLLEE_ID",
+    "LAST_NAME",
+    "FIRST_NAME",
+    "MIDDLE_NAME",
+    "DOB",
+    "GENDER",
+    "EMAIL",  # demographic
+    "SS_NUMBER",  # SSN no.
+    "ADDRESS1",
+    "ADDRESS2",
+    "CITY",
+    "STATE",
+    "ZIP",
+    "ZIP_4",  # address
+    "NAME_PREFIX",
+    "NAME_SUFFIX",
+    "COUNTY_ID",
+    "ADDRESS_CODE",
+    "BIRTH_SEQUENCE",
+    "DEATH_DATE",
+    "ETHNICITY_CODE",
+    "CITIZENSHIP_STATUS_CODE",
+    "RACE_ETHNICITY_CODE",  # additional information
+    "PREFERRED_CONTACT_METHOD",
+    "EOB_COMMUNICATION_METHOD",
+    "ID_CARD_COMMUNICATION_METHOD",
+    "LETTER_COMMUNICATION_METHOD",  # communicationPreference
+    "EN_CREATION_DATE",  # created date
+    "EN_LAST_MODIFIED_DATE_TIME",  # updated date
+]
+
+PATIENT_COLS = [
+    "EN_ENROLLEE_ID",
+    "SUBSCRIBER_ID",
+    "MEMBER_ID",
+    "RELATIONSHIP_CODE",
+    "EN_CREATION_DATE",  # created date
+    "EN_LAST_MODIFIED_DATE_TIME",  # updated date
+]
+
+ELIGIBILITY_COLS = [
+    "EL_ENROLLEE_ID",
+    "EL_INSURED_ENROLLEE_ID",
+    "SUBSCRIBER_ID",
+    "MEMBER_ID",
+    "PRODUCT_ID",
+    "EFFECTIVE_DATE",
+    "TERMINATION_DATE",
+    "BENEFIT_STATUS_CODE",
+    "RELATIONSHIP_CODE",
+    "MARITAL_STATUS",
+    "STUDENT_STATUS_CODE",
+    "HANDICAP_FLAG",
+    "LEVEL_OF_CARE_ID",
+    "LATE_ENROLLEE_FLAG",
+    "WAITING_PERIOD_CREDIT",
+    "ADD_REASON_CODE",
+    "ADD_REASON_EVENT_DATE",
+    "TERMINATION_REASON_CODE",
+    "TERMINATION_REASON_EVENT_DATE",
+    "CLIENT_MCO_ID",
+    "CLIENT_PROGRAM_CODE",
+    "CLIENT_RATE_CODE",
+    "OTHER_INFO1",
+    "OTHER_INFO2",
+    "OTHER_INFO3",
+    "EL_DOMAIN_SOURCE_ID",
+    "PAID_THROUGH_DATE",
+    "PAID_THROUGH_GRACE_PERIOD",  # additionalInformation
+    "EL_CREATION_DATE",  # created date
+    "EL_LAST_MODIFIED_DATE_TIME",  # updated date
+]
+
+SUBSCRIBER_COLS = [
+    "EL_INSURED_ENROLLEE_ID",
+    "SUBSCRIBER_ID",
+    "EMPLOYMENT_STATUS",
+    "EMPLOYMENT_EFFECTIVE_DATE",
+    "EMPLOYMENT_TERMINATION_DATE",  # employment
+    "PREMIUM_GROUP_ID",
+    "PREMIUM_GROUP_DEPARTMENT_ID",  # premium group
+    "EN_CREATION_DATE",
+    "EN_LAST_MODIFIED_DATE_TIME",
+    # "POLICY_NUMBER",
+]
