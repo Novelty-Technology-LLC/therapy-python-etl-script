@@ -14,8 +14,8 @@ from src.shared.interface.common import (
 
 
 class IArdbEligibility(TypedDict):
-    EL_ENROLLEE_ID: str
-    EL_INSURED_ENROLLEE_ID: str
+    ENROLLEE_ID: str
+    INSURED_ENROLLEE_ID: str
     PRODUCT_ID: str
     EFFECTIVE_DATE: str
     TERMINATION_DATE: str
@@ -45,8 +45,8 @@ class IArdbEligibility(TypedDict):
     PAID_THROUGH_DATE: str
     PAID_THROUGH_GRACE_PERIOD: str
 
-    EL_CREATION_DATE: str
-    EL_LAST_MODIFIED_DATE_TIME: str
+    CREATION_DATE: str
+    LAST_MODIFIED_DATE_TIME: str
 
 
 class IEligibilityAddReasonCode(TypedDict):

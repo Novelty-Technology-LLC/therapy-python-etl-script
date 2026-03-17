@@ -1,22 +1,24 @@
-from pathlib import Path
+from datetime import datetime
+from typing import Callable
+import pandas as pd
+import numpy as np
 import time
 from pymongo.operations import UpdateOne
 import uuid_utils as uuid
-import pandas as pd
-import numpy as np
-from datetime import datetime
 
+from pathlib import Path
 from src.core.migrate.base_etl import BaseEtl
-from src.core.service.dump_records.model import DumpRecordsModel
-from src.shared.utils.batch import get_total_batch
-from src.shared.utils.dataframe import batch_iterator
-from src.core.data_frame_type.eligibility import (
-    ELIGIBILITY_COLS,
-    ELIGIBILITY_ETL_DATA_FRAME_TYPE,
-    ENROLLEE_COLS,
-    PATIENT_COLS,
-    SUBSCRIBER_COLS,
+from src.core.migrate.excel.eligibility.data_frame_type.eligibility_data_frame_type import (
+    ELIGIBILITY_MIGRATE_COLS,
+    ELIGIBILITY_MIGRATE_ETL_DATA_FRAME_TYPE,
+    PATIENT_MIGRATE_COLS,
+    SUBSCRIBER_MIGRATE_COLS,
 )
+from src.core.migrate.excel.eligibility.data_frame_type.enrollee_data_frame_type import (
+    ENROLLEE_MIGRATE_COLS,
+    ENROLLEE_MIGRATE_ETL_DATA_FRAME_TYPE,
+)
+from src.core.service.dump_records.model import DumpRecordsModel
 from src.core.service.eligibility.entity import ITherapyEligibility
 from src.core.service.eligibility.mapper import eligibility_mapper
 from src.core.service.eligibility.model import eligibilityModel
@@ -32,13 +34,17 @@ from src.core.service.subscribers.mapper import subscriber_mapper
 from src.core.service.subscribers.model import subscribersModel
 from src.shared.constant.collection_name import CollectionName
 from src.shared.interface.etl.migration import FileMetadata
+from src.shared.interface.etl.sheet_name import SheetName
 from src.shared.interface.migration import InputFileType
+from src.shared.utils.batch import get_total_batch
+from src.shared.utils.dataframe import batch_iterator
 from src.shared.utils.date import format_duration
 from src.shared.utils.obj import get_obj_value
 from src.shared.utils.path import get_input_files_path
+from src.shared.utils.sheet_name import sort_and_filter_sheets
 
 
-class Eligibility_Etl(BaseEtl):
+class Eligibility_Etl_Migrate(BaseEtl):
 
     def __init__(self):
         super().__init__()
@@ -49,80 +55,110 @@ class Eligibility_Etl(BaseEtl):
             file_type=InputFileType.EXCEL,
         )
 
-        dump_records_model = DumpRecordsModel(
-            collection_name=CollectionName.DUMP_ELIGIBILITY
-        )
-
-        ardb_file_processed_at = datetime.now()
-        ardb_file_path = "ETL_SCRIPTS"
-
-        # Create data frame
         for file in all_files:
             start = time.perf_counter()
-            print(f"========== [START] Processing file: {file.name} ==========")
+            print(f"Processing file: {file.name}")
 
-            ardb_file_name = file.name
-            file_metadata = FileMetadata(
-                ardb_file_processed_at=ardb_file_processed_at,
-                ardb_file_name=ardb_file_name,
-                ardb_file_path=ardb_file_path,
-            )
-
-            print(file)
-            df = pd.read_excel(
-                file, sheet_name="ELIGIBILITY", dtype=ELIGIBILITY_ETL_DATA_FRAME_TYPE
-            )
-
-            df.replace({np.nan: None}, inplace=True)
-
-            # Batch processing
-            total_batches = get_total_batch(df)
-            print(f"Total batches: {total_batches}")
-
-            for batch_num, chunk in enumerate(batch_iterator(df)):
-                print(f"Processing batch {batch_num + 1} of {total_batches}")
-
-                self.load_enrollee(chunk, file_metadata)
-
-                self.load_subscriber(chunk, file_metadata)
-
-                self.load_patient(chunk, file_metadata)
-
-                self.load_eligibility(chunk, file_metadata)
-
-                print("========= DUMP RECORDS ==========")
-                df["ardbSourceDocument"] = ardb_file_name
-                df["ardbLastModifiedDate"] = ardb_file_processed_at
-
-                dump_records_model.insert_many(df.to_dict("records"))
+            sheet_names = self._get_all_sheet_names(file)
+            self._route_etl(file, sheet_names)
 
             elapsed = time.perf_counter() - start
             print(
                 f"========== [END] Processing file: {file.name} in {format_duration(elapsed)} =========="
             )
 
-    def load_enrollee(self, df: pd.DataFrame, file_metadata: FileMetadata):
+    def _get_all_sheet_names(self, file_path: Path) -> list[str]:
+        sheet_names = pd.ExcelFile(file_path).sheet_names
+        return sort_and_filter_sheets(sheet_names)
+
+    def _route_etl(self, file_path: Path, sheet_names: list[SheetName]):
+
+        for sheet_name in sheet_names:
+            match sheet_name:
+                case SheetName.ENROLLEES:
+                    self._load_sheet(
+                        file_path,
+                        sheet_name,
+                        CollectionName.DUMP_ENROLLEES,
+                        ENROLLEE_MIGRATE_ETL_DATA_FRAME_TYPE,
+                        self._load_enrollee,
+                    )
+
+                case SheetName.ELIGIBILITY:
+                    self._load_sheet(
+                        file_path,
+                        sheet_name,
+                        CollectionName.DUMP_ELIGIBILITY,
+                        ELIGIBILITY_MIGRATE_ETL_DATA_FRAME_TYPE,
+                        self._load_eligibility,
+                    )
+
+                case _:
+                    raise ValueError(f"Invalid sheet name: {sheet_name}")
+
+    def _load_sheet(
+        self,
+        file_path: Path,
+        sheet_name: SheetName,
+        dump_collection_name: CollectionName,
+        data_frame_type: dict,
+        execution_method: Callable,
+    ):
+        print(f"=========== [START] Loading [{sheet_name}] Sheet ===========")
+        dump_records_model = DumpRecordsModel(collection_name=dump_collection_name)
+
+        ardb_file_processed_at = datetime.now()
+        ardb_file_path = "ETL_MIGRATE"
+
+        df = pd.read_excel(file_path, sheet_name=sheet_name, dtype=data_frame_type)
+        df.replace({np.nan: None}, inplace=True)
+
+        # Batch processing
+        total_batches = get_total_batch(df)
+        print(f"Total batches: {total_batches}")
+
+        file_metadata = FileMetadata(
+            ardb_file_processed_at=ardb_file_processed_at,
+            ardb_file_name=file_path.name,
+            ardb_file_path=ardb_file_path,
+        )
+
+        for batch_num, chunk in enumerate(batch_iterator(df)):
+            print(f"Processing batch {batch_num + 1} of {total_batches}")
+
+            # self.load_enrollee(chunk, file_metadata)
+            execution_method(chunk, file_metadata)
+
+            print("========= DUMP RECORDS ==========")
+            df["ardbSourceDocument"] = file_path.name
+            df["ardbLastModifiedDate"] = ardb_file_processed_at
+
+            dump_records_model.insert_many(df.to_dict("records"))
+
+        print(f"=========== [END] Loading [{sheet_name}] Sheet ===========")
+
+    def _load_enrollee(self, df: pd.DataFrame, file_metadata: FileMetadata):
         print("=========== [START] Loading enrollees ===========")
 
         enrollee_df = (
-            df[ENROLLEE_COLS]
-            .drop_duplicates(subset=["EN_ENROLLEE_ID"], keep="first")
+            df[ENROLLEE_MIGRATE_COLS]
+            .drop_duplicates(subset=["ENROLLEE_ID"], keep="first")
             .reset_index(drop=True)
         )
 
         # fetch enrollee from db
-        query = {"referenceId": {"$in": enrollee_df["EN_ENROLLEE_ID"].tolist()}}
+        query = {"referenceId": {"$in": enrollee_df["ENROLLEE_ID"].tolist()}}
         enrollee_from_db = enrollee_adapter.to_ardb_format(
             list[ITherapyEnrollee](enrolleesModel.get_model().find(query))
         )
 
         for row in enrollee_df.itertuples(index=True):
             index = getattr(row, "Index", None)
-            ardb_enrollee_id = getattr(row, "EN_ENROLLEE_ID", None)
+            ardb_enrollee_id = getattr(row, "ENROLLEE_ID", None)
 
             therapy_enrollee_from_db = None
             for enrollee in enrollee_from_db:
-                if enrollee["EN_ENROLLEE_ID"] == ardb_enrollee_id:
+                if enrollee["ENROLLEE_ID"] == ardb_enrollee_id:
                     therapy_enrollee_from_db = enrollee
                     break
 
@@ -136,11 +172,11 @@ class Eligibility_Etl(BaseEtl):
             if therapy_enrollee_from_db is not None:
                 enrollee_df.at[index, "_id"] = therapy_enrollee_from_db.get("_id")
                 date_ardb = pd.to_datetime(
-                    enrollee_df.at[index, "EN_LAST_MODIFIED_DATE_TIME"],
+                    enrollee_df.at[index, "LAST_MODIFIED_DATE_TIME"],
                     errors="coerce",
                 )
                 date_therapy = pd.to_datetime(
-                    therapy_enrollee_from_db.get("EN_LAST_MODIFIED_DATE_TIME"),
+                    therapy_enrollee_from_db.get("LAST_MODIFIED_DATE_TIME"),
                     errors="coerce",
                 )
                 has_complete_info = therapy_enrollee_from_db.get(
@@ -196,29 +232,34 @@ class Eligibility_Etl(BaseEtl):
 
         print("=========== [END] Loading enrollees ===========")
 
-    def load_subscriber(self, df: pd.DataFrame, file_metadata: FileMetadata):
+    def _load_eligibility(self, df: pd.DataFrame, file_metadata: FileMetadata):
+        self._execute_subscriber(df, file_metadata)
+        self._execute_patient(df, file_metadata)
+        self._execute_eligibility(df, file_metadata)
+
+    def _execute_subscriber(self, df: pd.DataFrame, file_metadata: FileMetadata):
         print("=========== [START] Loading subscribers ===========")
 
         subscriber_df = (
-            df[SUBSCRIBER_COLS]
+            df[SUBSCRIBER_MIGRATE_COLS]
             .drop_duplicates(
-                subset=["SUBSCRIBER_ID", "EL_INSURED_ENROLLEE_ID"], keep="first"
+                subset=["SUBSCRIBER_ID", "INSURED_ENROLLEE_ID"], keep="first"
             )
             .reset_index(drop=True)
         )
 
         subscriber_query = {
-            "$or": subscriber_df[["SUBSCRIBER_ID", "EL_INSURED_ENROLLEE_ID"]]
+            "$or": subscriber_df[["SUBSCRIBER_ID", "INSURED_ENROLLEE_ID"]]
             .rename(
                 columns={
                     "SUBSCRIBER_ID": "subscriberNumber",
-                    "EL_INSURED_ENROLLEE_ID": "enrollee.referenceId",
+                    "INSURED_ENROLLEE_ID": "enrollee.referenceId",
                 }
             )
             .to_dict("records")
         }
         enrollee_query = {
-            "referenceId": {"$in": subscriber_df["EL_INSURED_ENROLLEE_ID"].tolist()}
+            "referenceId": {"$in": subscriber_df["INSURED_ENROLLEE_ID"].tolist()}
         }
 
         # fetch enrollee from db
@@ -237,9 +278,7 @@ class Eligibility_Etl(BaseEtl):
         for subscriber_row in subscriber_df.itertuples(index=True):
             index = getattr(subscriber_row, "Index", None)
             subscriber_id = getattr(subscriber_row, "SUBSCRIBER_ID", None)
-            insured_enrollee_id = getattr(
-                subscriber_row, "EL_INSURED_ENROLLEE_ID", None
-            )
+            insured_enrollee_id = getattr(subscriber_row, "INSURED_ENROLLEE_ID", None)
 
             therapy_enrollee_from_db = None
             therapy_subscriber_from_db = None
@@ -258,7 +297,7 @@ class Eligibility_Etl(BaseEtl):
                 therapy_enrollee_from_db = enrollee_mapper.to_therapy(
                     {
                         "_id": str(uuid.uuid7()),
-                        "EN_ENROLLEE_ID": insured_enrollee_id,
+                        "ENROLLEE_ID": insured_enrollee_id,
                         "hasCompleteInfo": False,
                     },
                     file_metadata,
@@ -296,7 +335,7 @@ class Eligibility_Etl(BaseEtl):
                 subscriber_df.at[index, "_id"] = therapy_subscriber_from_db.get("_id")
 
                 date_ardb = pd.to_datetime(
-                    subscriber_df.at[index, "EN_LAST_MODIFIED_DATE_TIME"],
+                    subscriber_df.at[index, "LAST_MODIFIED_DATE_TIME"],
                     errors="coerce",
                 )
                 date_therapy = pd.to_datetime(
@@ -358,12 +397,12 @@ class Eligibility_Etl(BaseEtl):
 
         print("=========== [END] Loading subscribers ===========")
 
-    def load_patient(self, df: pd.DataFrame, file_metadata: FileMetadata):
+    def _execute_patient(self, df: pd.DataFrame, file_metadata: FileMetadata):
         print("=========== [START] Loading patients ===========")
         patient_df = (
-            df[PATIENT_COLS]
+            df[PATIENT_MIGRATE_COLS]
             .drop_duplicates(
-                subset=["EN_ENROLLEE_ID", "SUBSCRIBER_ID", "MEMBER_ID"],
+                subset=["ENROLLEE_ID", "SUBSCRIBER_ID", "MEMBER_ID"],
                 keep="first",
             )
             .reset_index(drop=True)
@@ -371,10 +410,10 @@ class Eligibility_Etl(BaseEtl):
 
         # build query
         patient_query = {
-            "$or": patient_df[["EN_ENROLLEE_ID", "SUBSCRIBER_ID", "MEMBER_ID"]]
+            "$or": patient_df[["ENROLLEE_ID", "SUBSCRIBER_ID", "MEMBER_ID"]]
             .rename(
                 columns={
-                    "EN_ENROLLEE_ID": "enrollee.referenceId",
+                    "ENROLLEE_ID": "enrollee.referenceId",
                     "SUBSCRIBER_ID": "subscriber.identificationCode",
                     "MEMBER_ID": "memberId",
                 }
@@ -382,7 +421,7 @@ class Eligibility_Etl(BaseEtl):
             .to_dict("records")
         }
 
-        enrollee_query = {"referenceId": {"$in": patient_df["EN_ENROLLEE_ID"].tolist()}}
+        enrollee_query = {"referenceId": {"$in": patient_df["ENROLLEE_ID"].tolist()}}
         subscriber_query = {
             "subscriberNumber": {"$in": patient_df["SUBSCRIBER_ID"].tolist()}
         }
@@ -404,7 +443,7 @@ class Eligibility_Etl(BaseEtl):
         for patient_row in patient_df.itertuples(index=True):
 
             index = getattr(patient_row, "Index", None)
-            patient_enrollee_id = getattr(patient_row, "EN_ENROLLEE_ID", None)
+            patient_enrollee_id = getattr(patient_row, "ENROLLEE_ID", None)
             patient_subscriber_id = getattr(patient_row, "SUBSCRIBER_ID", None)
             patient_member_id = getattr(patient_row, "MEMBER_ID", None)
 
@@ -459,7 +498,7 @@ class Eligibility_Etl(BaseEtl):
                 raw_patient_from_df["hasCompleteInfo"] = hasCompleteInfo
 
                 date_ardb = pd.to_datetime(
-                    patient_df.at[index, "EN_LAST_MODIFIED_DATE_TIME"],
+                    patient_df.at[index, "LAST_MODIFIED_DATE_TIME"],
                     errors="coerce",
                 )
                 date_therapy = pd.to_datetime(
@@ -506,29 +545,29 @@ class Eligibility_Etl(BaseEtl):
 
         print("=========== [END] Loading patients ===========")
 
-    def load_eligibility(self, df: pd.DataFrame, file_metadata: FileMetadata):
+    def _execute_eligibility(self, df: pd.DataFrame, file_metadata: FileMetadata):
         print("=========== [START] Loading eligibility ===========")
-        eligibility_df = df[ELIGIBILITY_COLS].copy()
+        eligibility_df = df[ELIGIBILITY_MIGRATE_COLS].copy()
 
         # build query
         enrollee_query = {
-            "referenceId": {"$in": eligibility_df["EL_ENROLLEE_ID"].tolist()}
+            "referenceId": {"$in": eligibility_df["ENROLLEE_ID"].tolist()}
         }
         subscriber_query = {
-            "$or": eligibility_df[["EL_INSURED_ENROLLEE_ID", "SUBSCRIBER_ID"]]
+            "$or": eligibility_df[["INSURED_ENROLLEE_ID", "SUBSCRIBER_ID"]]
             .rename(
                 columns={
-                    "EL_INSURED_ENROLLEE_ID": "enrollee.referenceId",
+                    "INSURED_ENROLLEE_ID": "enrollee.referenceId",
                     "SUBSCRIBER_ID": "subscriberNumber",
                 }
             )
             .to_dict("records")
         }
         patient_query = {
-            "$or": eligibility_df[["EL_ENROLLEE_ID", "SUBSCRIBER_ID", "MEMBER_ID"]]
+            "$or": eligibility_df[["ENROLLEE_ID", "SUBSCRIBER_ID", "MEMBER_ID"]]
             .rename(
                 columns={
-                    "EL_ENROLLEE_ID": "enrollee.referenceId",
+                    "ENROLLEE_ID": "enrollee.referenceId",
                     "SUBSCRIBER_ID": "subscriber.identificationCode",
                     "MEMBER_ID": "memberId",
                 }
@@ -538,11 +577,11 @@ class Eligibility_Etl(BaseEtl):
 
         eligibility_query = {
             "$or": eligibility_df[
-                ["EL_ENROLLEE_ID", "PRODUCT_ID", "SUBSCRIBER_ID", "MEMBER_ID"]
+                ["ENROLLEE_ID", "PRODUCT_ID", "SUBSCRIBER_ID", "MEMBER_ID"]
             ]
             .rename(
                 columns={
-                    "EL_ENROLLEE_ID": "enrollee.referenceId",
+                    "ENROLLEE_ID": "enrollee.referenceId",
                     "PRODUCT_ID": "product.referenceId",
                     "SUBSCRIBER_ID": "subscriber.identificationCode",
                     "MEMBER_ID": "patient.memberId",
@@ -570,9 +609,9 @@ class Eligibility_Etl(BaseEtl):
 
         for eligibility_row in eligibility_df.itertuples(index=True):
             index = getattr(eligibility_row, "Index", None)
-            eligibility_enrollee_id = getattr(eligibility_row, "EL_ENROLLEE_ID", None)
+            eligibility_enrollee_id = getattr(eligibility_row, "ENROLLEE_ID", None)
             eligibility_insured_enrollee_id = getattr(
-                eligibility_row, "EL_INSURED_ENROLLEE_ID", None
+                eligibility_row, "INSURED_ENROLLEE_ID", None
             )
             eligibility_product_id = getattr(eligibility_row, "PRODUCT_ID", None)
             eligibility_subscriber_id = getattr(eligibility_row, "SUBSCRIBER_ID", None)
@@ -666,7 +705,7 @@ class Eligibility_Etl(BaseEtl):
                 raw_eligibility_from_df["hasCompleteInfo"] = hasCompleteInfo
 
                 date_ardb = pd.to_datetime(
-                    eligibility_df.at[index, "EL_LAST_MODIFIED_DATE_TIME"],
+                    eligibility_df.at[index, "LAST_MODIFIED_DATE_TIME"],
                     errors="coerce",
                 )
                 date_therapy = pd.to_datetime(

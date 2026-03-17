@@ -8,10 +8,9 @@ from src.core.command.etl import etl_command
     "-exec",
     "--execute",
     default="ALL",
-    type=click.Choice(["ALL", "ELIGIBILITY", "CLAIM_RPT", "PROVIDER_CLAIM"]),
+    type=click.Choice(["ALL", "CLAIM_RPT", "PROVIDER_CLAIM", "ELIGIBILITY"]),
     help="ETL execute command",
 )
-@click.option("-f", "--file", help="Create ETL script file")
 def main(execute):
     """
     This is the main description of your script.

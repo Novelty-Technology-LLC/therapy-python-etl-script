@@ -13,7 +13,7 @@ class EnrolleeMapper:
         return {
             "_id": get_obj_value(enrollee, "_id"),
             "hasCompleteInfo": get_obj_value(enrollee, "hasCompleteInfo", default=True),
-            "EN_ENROLLEE_ID": get_obj_value(enrollee, "referenceId"),
+            "ENROLLEE_ID": get_obj_value(enrollee, "referenceId"),
             "LAST_NAME": get_obj_value(enrollee, "lastName"),
             "FIRST_NAME": get_obj_value(enrollee, "firstName"),
             "MIDDLE_NAME": get_obj_value(enrollee, "middleName"),
@@ -62,12 +62,12 @@ class EnrolleeMapper:
             "LETTER_COMMUNICATION_METHOD": get_obj_value(
                 enrollee, "communicationPreference", "letterCommunicationMethod"
             ),
-            "EN_CREATION_DATE": (
+            "CREATION_DATE": (
                 None
                 if get_obj_value(enrollee, "created", "at") is None
                 else get_obj_value(enrollee, "created", "at")
             ),
-            "EN_LAST_MODIFIED_DATE_TIME": (
+            "LAST_MODIFIED_DATE_TIME": (
                 None
                 if get_obj_value(enrollee, "updated", "at") is None
                 else get_obj_value(enrollee, "updated", "at")
@@ -86,13 +86,11 @@ class EnrolleeMapper:
             "hasCompleteInfo": get_obj_value(enrollee, "hasCompleteInfo", default=True),
             "created": {
                 "by": "system",
-                "at": to_datetime(get_obj_value(enrollee, "EN_CREATION_DATE")),
+                "at": to_datetime(get_obj_value(enrollee, "CREATION_DATE")),
             },
             "updated": {
                 "by": "system",
-                "at": to_datetime(
-                    get_obj_value(enrollee, "EN_LAST_MODIFIED_DATE_TIME")
-                ),
+                "at": to_datetime(get_obj_value(enrollee, "LAST_MODIFIED_DATE_TIME")),
             },
             "firstName": get_obj_value(enrollee, "FIRST_NAME"),
             "middleName": get_obj_value(enrollee, "MIDDLE_NAME"),
@@ -111,7 +109,7 @@ class EnrolleeMapper:
                 "zipCode": get_obj_value(enrollee, "ZIP"),
                 "zipCode4": get_obj_value(enrollee, "ZIP_4"),
             },
-            "referenceId": get_obj_value(enrollee, "EN_ENROLLEE_ID"),
+            "referenceId": get_obj_value(enrollee, "ENROLLEE_ID"),
             "additionalInformation": {
                 "namePrefix": get_obj_value(enrollee, "NAME_PREFIX"),
                 "nameSuffix": get_obj_value(enrollee, "NAME_SUFFIX"),

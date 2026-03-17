@@ -12,8 +12,8 @@ from src.shared.interface.common import (
 
 
 class IArdbPatient(TypedDict):
-    EN_ENROLLEE_ID: str
-    EL_INSURED_ENROLLEE_ID: str
+    ENROLLEE_ID: str
+    INSURED_ENROLLEE_ID: str
     SUBSCRIBER_ID: str
     MEMBER_ID: str
     RELATIONSHIP_CODE: str
@@ -37,8 +37,8 @@ class IArdbPatient(TypedDict):
     # FIRST_NAME_SUBSCRIBER: str
     # MIDDLE_NAME_SUBSCRIBER: str
     # SUBSCRIBER_NAME: str
-    EN_CREATION_DATE: str
-    EN_LAST_MODIFIED_DATE_TIME: str
+    CREATION_DATE: str
+    LAST_MODIFIED_DATE_TIME: str
 
 
 class IPatientDemographic(IDemographic):
