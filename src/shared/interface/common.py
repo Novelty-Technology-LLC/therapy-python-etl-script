@@ -109,6 +109,10 @@ class IEnrolleeReference(TypedDict):
     enrollee: IOldAndNewSystemReference
 
 
+class IInsuredEnrolleeReference(TypedDict):
+    insuredEnrollee: IOldAndNewSystemReference
+
+
 class IDateRange(TypedDict):
     startDate: Optional[date]
     formattedStartDate: Optional[str]

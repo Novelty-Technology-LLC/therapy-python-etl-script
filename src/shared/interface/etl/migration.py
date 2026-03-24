@@ -74,3 +74,7 @@ class FileMetadata(TypedDict):
     ardb_file_processed_at: date
     ardb_file_name: str
     ardb_file_path: str
+    original_file_name: str
+    document_id: str
+    file_extension: str
+    file_type: str

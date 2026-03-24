@@ -8,6 +8,7 @@ from src.shared.interface.common import (
     IDemographicWithEmail,
     IEnrolleeReference,
     IHistory,
+    IInsuredEnrolleeReference,
     IOldSystemReference,
 )
 
@@ -48,11 +49,16 @@ class ITherapySubscriberPremiumGroup(IOldSystemReference):
     department: Optional[IOldSystemReference]
 
 
+class ITherapySubscriberDemographic(TypedDict, total=False):
+    demographic: IDemographicWithEmail
+
+
 class ITherapySubscriberInfo(
-    IDemographicWithEmail,
+    TypedDict,
 ):
     subscriberNumber: str
     premiumGroup: Optional[ITherapySubscriberPremiumGroup]
+    demographic: ITherapySubscriberDemographic
 
 
 class ITherapySubscriberEmployment(IDateRange):
@@ -64,6 +70,7 @@ class ITherapySubscriber(
     ITherapySubscriberInfo,
     IARDBDocumentReference,
     IEnrolleeReference,
+    IInsuredEnrolleeReference,
     IHistory[ITherapySubscriberInfo],
 ):
     policyNumber: str
@@ -90,14 +97,6 @@ subscriber: ITherapySubscriber = {
         "startDate": datetime.now(),
         "endDate": datetime.now(),
     },
-    "address": {
-        "addressLine1": "123 Main St",
-        "addressLine2": "Apt 1",
-        "city": "Anytown",
-        "state": "CA",
-        "zipCode": "12345",
-        "zipCode4": "1234",
-    },
     "ardbDocuments": [
         {
             "refId": "1234567890",
@@ -120,12 +119,23 @@ subscriber: ITherapySubscriber = {
             },
         }
     ],
-    "dob": datetime.now(),
-    "gender": "Male",
-    "email": "john.doe@example.com",
-    "firstName": "John",
-    "middleName": "Doe",
-    "lastName": "Smith",
-    "phone": "1234567890",
+    "demographic": {
+        "dob": datetime.now(),
+        "gender": "Male",
+        "email": "john.doe@example.com",
+        "firstName": "John",
+        "middleName": "Doe",
+        "lastName": "Smith",
+        "phone": "1234567890",
+        "address": {
+            "addressLine1": "123 Main St",
+            "addressLine2": "Apt 1",
+            "city": "Anytown",
+            "state": "CA",
+            "zipCode": "12345",
+            "zipCode4": "1234",
+        },
+    },
     "enrollee": {"referenceId": "1234567890", "referenceId": "1234567890"},
+    "insuredEnrollee": {"referenceId": "1234567890", "referenceId": "1234567890"},
 }

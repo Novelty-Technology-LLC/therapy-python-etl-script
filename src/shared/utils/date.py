@@ -17,3 +17,9 @@ def format_duration(seconds: float) -> str:
         return "less than 1 min"
     minutes = seconds / 60
     return f"{minutes:.1f} min"  # or round(minutes, 1), or int(minutes) for whole mins
+
+
+def timeStamp(date: datetime | None = None) -> int:
+    return (
+        int(date.timestamp() * 1000) if date else int(datetime.now().timestamp() * 1000)
+    )

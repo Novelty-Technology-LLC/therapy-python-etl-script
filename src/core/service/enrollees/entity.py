@@ -80,12 +80,16 @@ class ITherapyEnrolleeCommunicationPreference(TypedDict, total=False):
     letterCommunicationMethod: Optional[str]
 
 
+class ITherapyEnrolleeDemographic(TypedDict, total=False):
+    demographic: IMemberDemographic
+
+
 class ITherapyEnrollee(
     IBaseEntity,
-    IMemberDemographic,
     IOldSystemReference,
     IARDBDocumentReference,
-    IHistory[IMemberDemographic],
+    ITherapyEnrolleeDemographic,
+    IHistory[ITherapyEnrolleeDemographic],
 ):
     additionalInformation: Optional[ITherapyEnrolleeAdditionalInformation]
     communicationPreference: Optional[ITherapyEnrolleeCommunicationPreference]

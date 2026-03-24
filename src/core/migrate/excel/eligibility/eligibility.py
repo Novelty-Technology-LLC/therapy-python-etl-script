@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Callable
+from typing import Callable, Optional
 import pandas as pd
 import numpy as np
 import time
@@ -7,6 +7,7 @@ from pymongo.operations import UpdateOne
 import uuid_utils as uuid
 
 from pathlib import Path
+from src.config.config import Config
 from src.core.migrate.base_etl import BaseEtl
 from src.core.migrate.excel.eligibility.data_frame_type.eligibility_data_frame_type import (
     ELIGIBILITY_MIGRATE_COLS,
@@ -18,6 +19,7 @@ from src.core.migrate.excel.eligibility.data_frame_type.enrollee_data_frame_type
     ENROLLEE_MIGRATE_COLS,
     ENROLLEE_MIGRATE_ETL_DATA_FRAME_TYPE,
 )
+from src.core.service.documents.model import documentsModel
 from src.core.service.dump_records.model import DumpRecordsModel
 from src.core.service.eligibility.entity import ITherapyEligibility
 from src.core.service.eligibility.mapper import eligibility_mapper
@@ -33,12 +35,15 @@ from src.core.service.subscribers.entity import ITherapySubscriber
 from src.core.service.subscribers.mapper import subscriber_mapper
 from src.core.service.subscribers.model import subscribersModel
 from src.shared.constant.collection_name import CollectionName
+from src.shared.helper.s3_bucket_helper import aws_s3_helper
+from src.shared.interface.document import DocumentStatusEnum
 from src.shared.interface.etl.migration import FileMetadata
 from src.shared.interface.etl.sheet_name import SheetName
 from src.shared.interface.migration import InputFileType
 from src.shared.utils.batch import get_total_batch
 from src.shared.utils.dataframe import batch_iterator
-from src.shared.utils.date import format_duration
+from src.shared.utils.date import format_duration, timeStamp
+from src.shared.utils.migration import generate_uuid
 from src.shared.utils.obj import get_obj_value
 from src.shared.utils.path import get_input_files_path
 from src.shared.utils.sheet_name import sort_and_filter_sheets
@@ -48,31 +53,103 @@ class Eligibility_Etl_Migrate(BaseEtl):
 
     def __init__(self):
         super().__init__()
+        self.support_duplicate_documents = Config.get_documents().get(
+            "support_duplicate_documents"
+        )
 
     def execute(self):
+        documentId: Optional[str] = None
+
         all_files = get_input_files_path(
             input_file_path=Path("input-files/eligibility"),
             file_type=InputFileType.EXCEL,
         )
 
         for file in all_files:
-            start = time.perf_counter()
-            print(f"Processing file: {file.name}")
+            try:
+                start = time.perf_counter()
+                if not self.support_duplicate_documents:
+                    documentFromDb = documentsModel.get_model().find_one(
+                        {
+                            "originalName": file.name,
+                            "status": {"$ne": DocumentStatusEnum.FAILED},
+                        }
+                    )
 
-            sheet_names = self._get_all_sheet_names(file)
-            self._route_etl(file, sheet_names)
+                    if documentFromDb:
+                        print(f"Document {file.name} already exists in the database")
+                        continue
 
-            elapsed = time.perf_counter() - start
-            print(
-                f"========== [END] Processing file: {file.name} in {format_duration(elapsed)} =========="
-            )
+                receivedAt = datetime.now()
+                s3_file_name = f"{timeStamp(receivedAt)}-{file.name}"
+                s3_key = f"eligibility/{s3_file_name}"
+                aws_s3_helper.upload_file(file, s3_key)
+                s3_prefix_key = aws_s3_helper._prefix_key(s3_key)
+
+                documentId = generate_uuid()
+                documentsModel.get_model().insert_one(
+                    {
+                        "_id": documentId,
+                        "originalName": file.name,
+                        "status": DocumentStatusEnum.NEW,
+                        "receivedAt": receivedAt,
+                        "fileName": s3_file_name,
+                        "destination": s3_prefix_key,
+                    }
+                )
+
+                print(f"Processing file: {file.name}")
+
+                if documentId:
+                    documentsModel.get_model().update_one(
+                        {"_id": documentId},
+                        {"$set": {"status": DocumentStatusEnum.PROCESSING}},
+                    )
+
+                file_metadata = FileMetadata(
+                    ardb_file_name=s3_file_name,
+                    ardb_file_path=s3_prefix_key,
+                    ardb_file_processed_at=receivedAt,
+                    document_id=documentId,
+                    file_extension=file.suffix,
+                    file_type=InputFileType.EXCEL,
+                    original_file_name=file.name,
+                )
+                sheet_names = self._get_all_sheet_names(file)
+                self._route_etl(file, sheet_names, file_metadata)
+
+                elapsed = time.perf_counter() - start
+
+                if documentId:
+                    documentsModel.get_model().update_one(
+                        {"_id": documentId},
+                        {"$set": {"status": DocumentStatusEnum.COMPLETED}},
+                    )
+                print(
+                    f"========== [END] Processing file: {file.name} in {format_duration(elapsed)} =========="
+                )
+
+            except Exception as e:
+                print(f"Error processing file: {file.name} - {e}")
+                if documentId:
+                    documentsModel.get_model().update_one(
+                        {"_id": documentId},
+                        {
+                            "$set": {
+                                "status": DocumentStatusEnum.FAILED,
+                                "reason": str(e),
+                            }
+                        },
+                    )
+                print(f"Error processing file: {file.name} - {e}")
 
     def _get_all_sheet_names(self, file_path: Path) -> list[str]:
         sheet_names = pd.ExcelFile(file_path).sheet_names
         return sort_and_filter_sheets(sheet_names)
 
-    def _route_etl(self, file_path: Path, sheet_names: list[SheetName]):
-
+    def _route_etl(
+        self, file_path: Path, sheet_names: list[SheetName], file_metadata: FileMetadata
+    ):
         for sheet_name in sheet_names:
             match sheet_name:
                 case SheetName.ENROLLEES:
@@ -82,6 +159,7 @@ class Eligibility_Etl_Migrate(BaseEtl):
                         CollectionName.DUMP_ENROLLEES,
                         ENROLLEE_MIGRATE_ETL_DATA_FRAME_TYPE,
                         self._load_enrollee,
+                        file_metadata,
                     )
 
                 case SheetName.ELIGIBILITY:
@@ -91,6 +169,7 @@ class Eligibility_Etl_Migrate(BaseEtl):
                         CollectionName.DUMP_ELIGIBILITY,
                         ELIGIBILITY_MIGRATE_ETL_DATA_FRAME_TYPE,
                         self._load_eligibility,
+                        file_metadata,
                     )
 
                 case _:
@@ -103,12 +182,10 @@ class Eligibility_Etl_Migrate(BaseEtl):
         dump_collection_name: CollectionName,
         data_frame_type: dict,
         execution_method: Callable,
+        file_metadata: FileMetadata,
     ):
         print(f"=========== [START] Loading [{sheet_name}] Sheet ===========")
         dump_records_model = DumpRecordsModel(collection_name=dump_collection_name)
-
-        ardb_file_processed_at = datetime.now()
-        ardb_file_path = "ETL_MIGRATE"
 
         df = pd.read_excel(file_path, sheet_name=sheet_name, dtype=data_frame_type)
         df.replace({np.nan: None}, inplace=True)
@@ -117,11 +194,11 @@ class Eligibility_Etl_Migrate(BaseEtl):
         total_batches = get_total_batch(df)
         print(f"Total batches: {total_batches}")
 
-        file_metadata = FileMetadata(
-            ardb_file_processed_at=ardb_file_processed_at,
-            ardb_file_name=file_path.name,
-            ardb_file_path=ardb_file_path,
-        )
+        # file_metadata = FileMetadata(
+        #     ardb_file_processed_at=ardb_file_processed_at,
+        #     ardb_file_name=file_path.name,
+        #     ardb_file_path=ardb_file_path,
+        # )
 
         for batch_num, chunk in enumerate(batch_iterator(df)):
             print(f"Processing batch {batch_num + 1} of {total_batches}")
@@ -131,7 +208,9 @@ class Eligibility_Etl_Migrate(BaseEtl):
 
             print("========= DUMP RECORDS ==========")
             df["ardbSourceDocument"] = file_path.name
-            df["ardbLastModifiedDate"] = ardb_file_processed_at
+            df["ardbLastModifiedDate"] = get_obj_value(
+                file_metadata, "ardb_file_processed_at"
+            )
 
             dump_records_model.insert_many(df.to_dict("records"))
 

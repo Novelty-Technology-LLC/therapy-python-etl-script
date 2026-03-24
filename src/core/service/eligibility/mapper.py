@@ -4,6 +4,7 @@ from src.core.service.patients.entity import ITherapyPatient
 from src.core.service.subscribers.entity import ITherapySubscriber
 from src.shared.interface.etl.migration import FileMetadata
 from src.shared.utils.date import to_datetime
+from src.shared.utils.migration import generate_file_metadata
 from src.shared.utils.name import get_name
 from src.shared.utils.obj import get_obj_value
 from src.shared.utils.qualifiers import resolve_relationship
@@ -43,9 +44,9 @@ class EligibilityMapper:
     ) -> ITherapyEligibility:
         subscriber_name = get_name(
             {
-                "firstName": get_obj_value(subscriber, "firstName"),
-                "middleName": get_obj_value(subscriber, "middleName"),
-                "lastName": get_obj_value(subscriber, "lastName"),
+                "firstName": get_obj_value(subscriber, "demographic", "firstName"),
+                "middleName": get_obj_value(subscriber, "demographic", "middleName"),
+                "lastName": get_obj_value(subscriber, "demographic", "lastName"),
             }
         )
 
@@ -133,20 +134,19 @@ class EligibilityMapper:
                 "waitingPeriodCredit": get_obj_value(
                     eligibility, "WAITING_PERIOD_CREDIT"
                 ),
-                "otherInformation": [
-                    get_obj_value(eligibility, "OTHER_INFO1"),
-                    get_obj_value(eligibility, "OTHER_INFO2"),
-                    get_obj_value(eligibility, "OTHER_INFO3"),
-                ],
+                "otherInformation": list(
+                    filter(
+                        lambda x: x is not None,
+                        [
+                            get_obj_value(eligibility, "OTHER_INFO1"),
+                            get_obj_value(eligibility, "OTHER_INFO2"),
+                            get_obj_value(eligibility, "OTHER_INFO3"),
+                        ],
+                    )
+                ),
             },
             "ardbDocuments": [
-                {
-                    "refId": None,
-                    "fileName": get_obj_value(file_metadata, "ardb_file_name"),
-                    "filePath": get_obj_value(file_metadata, "ardb_file_path"),
-                    "isReconciled": False,
-                    "updatedAt": get_obj_value(file_metadata, "ardb_file_processed_at"),
-                }
+                generate_file_metadata(file_metadata),
             ],
             "ardbSourceDocument": get_obj_value(file_metadata, "ardb_file_name"),
         }
