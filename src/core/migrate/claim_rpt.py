@@ -16,13 +16,14 @@ from src.shared.utils.rpt import get_colspecs_from_rpt
 
 class Claim_Rpt_Etl(BaseEtl):
 
-    def __init__(self):
+    def __init__(self, input_file_path: Path):
         super().__init__()
+        self.input_file_path = input_file_path
 
     def execute(self):
 
         all_files = get_input_files_path(
-            input_file_path=Path("input-files/claim_rpt"), file_type=InputFileType.RPT
+            input_file_path=self.input_file_path, file_type=InputFileType.RPT
         )
 
         dump_records_model = DumpRecordsModel(
@@ -30,7 +31,6 @@ class Claim_Rpt_Etl(BaseEtl):
         )
 
         ardb_file_processed_at = datetime.now()
-        ardb_file_path = "ETL_SCRIPTS"
 
         for file in all_files:
             start = time.perf_counter()

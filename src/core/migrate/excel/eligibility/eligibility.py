@@ -43,7 +43,7 @@ from src.shared.interface.migration import InputFileType
 from src.shared.utils.batch import get_total_batch
 from src.shared.utils.dataframe import batch_iterator
 from src.shared.utils.date import format_duration, timeStamp
-from src.shared.utils.migration import generate_uuid
+from src.shared.utils.migration import generate_uuid, verify_and_generate_document
 from src.shared.utils.obj import get_obj_value
 from src.shared.utils.path import get_input_files_path
 from src.shared.utils.sheet_name import sort_and_filter_sheets
@@ -51,52 +51,34 @@ from src.shared.utils.sheet_name import sort_and_filter_sheets
 
 class Eligibility_Etl_Migrate(BaseEtl):
 
-    def __init__(self):
+    def __init__(self, input_file_path: Path):
         super().__init__()
         self.support_duplicate_documents = Config.get_documents().get(
             "support_duplicate_documents"
         )
+        self.input_file_path = input_file_path
 
     def execute(self):
         documentId: Optional[str] = None
 
         all_files = get_input_files_path(
-            input_file_path=Path("input-files/eligibility"),
+            input_file_path=self.input_file_path,
             file_type=InputFileType.EXCEL,
         )
 
         for file in all_files:
             try:
                 start = time.perf_counter()
-                if not self.support_duplicate_documents:
-                    documentFromDb = documentsModel.get_model().find_one(
-                        {
-                            "originalName": file.name,
-                            "status": {"$ne": DocumentStatusEnum.FAILED},
-                        }
-                    )
 
-                    if documentFromDb:
-                        print(f"Document {file.name} already exists in the database")
-                        continue
-
-                receivedAt = datetime.now()
-                s3_file_name = f"{timeStamp(receivedAt)}-{file.name}"
-                s3_key = f"eligibility/{s3_file_name}"
-                aws_s3_helper.upload_file(file, s3_key)
-                s3_prefix_key = aws_s3_helper._prefix_key(s3_key)
-
-                documentId = generate_uuid()
-                documentsModel.get_model().insert_one(
-                    {
-                        "_id": documentId,
-                        "originalName": file.name,
-                        "status": DocumentStatusEnum.NEW,
-                        "receivedAt": receivedAt,
-                        "fileName": s3_file_name,
-                        "destination": s3_prefix_key,
-                    }
+                document_response = verify_and_generate_document(
+                    file, self.support_duplicate_documents, "eligibility"
                 )
+
+                if document_response is None:
+                    continue
+
+                documentId = document_response.get("documentId")
+                file_metadata = document_response.get("file_metadata")
 
                 print(f"Processing file: {file.name}")
 
@@ -106,15 +88,6 @@ class Eligibility_Etl_Migrate(BaseEtl):
                         {"$set": {"status": DocumentStatusEnum.PROCESSING}},
                     )
 
-                file_metadata = FileMetadata(
-                    ardb_file_name=s3_file_name,
-                    ardb_file_path=s3_prefix_key,
-                    ardb_file_processed_at=receivedAt,
-                    document_id=documentId,
-                    file_extension=file.suffix,
-                    file_type=InputFileType.EXCEL,
-                    original_file_name=file.name,
-                )
                 sheet_names = self._get_all_sheet_names(file)
                 self._route_etl(file, sheet_names, file_metadata)
 
