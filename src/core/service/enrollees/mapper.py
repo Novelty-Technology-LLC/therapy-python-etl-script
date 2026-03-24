@@ -2,6 +2,7 @@ from src.core.service.enrollees.entity import IArdbEnrollee, ITherapyEnrollee
 from src.shared.interface.etl.migration import FileMetadata
 from src.shared.utils.date import to_datetime
 from src.shared.utils.gender import to_ardb_gender, to_therapy_gender
+from src.shared.utils.migration import generate_file_metadata
 from src.shared.utils.obj import get_obj_value
 
 
@@ -14,19 +15,23 @@ class EnrolleeMapper:
             "_id": get_obj_value(enrollee, "_id"),
             "hasCompleteInfo": get_obj_value(enrollee, "hasCompleteInfo", default=True),
             "ENROLLEE_ID": get_obj_value(enrollee, "referenceId"),
-            "LAST_NAME": get_obj_value(enrollee, "lastName"),
-            "FIRST_NAME": get_obj_value(enrollee, "firstName"),
-            "MIDDLE_NAME": get_obj_value(enrollee, "middleName"),
-            "DOB": get_obj_value(enrollee, "dob"),
-            "GENDER": to_ardb_gender(get_obj_value(enrollee, "gender")),
-            "EMAIL": get_obj_value(enrollee, "email"),
-            "SS_NUMBER": get_obj_value(enrollee, "ssn"),
-            "ADDRESS1": get_obj_value(enrollee, "address", "addressLine1"),
-            "ADDRESS2": get_obj_value(enrollee, "address", "addressLine2"),
-            "CITY": get_obj_value(enrollee, "address", "city"),
-            "STATE": get_obj_value(enrollee, "address", "state"),
-            "ZIP": get_obj_value(enrollee, "address", "zipCode"),
-            "ZIP_4": get_obj_value(enrollee, "address", "zipCode4"),
+            "LAST_NAME": get_obj_value(enrollee, "demographic", "lastName"),
+            "FIRST_NAME": get_obj_value(enrollee, "demographic", "firstName"),
+            "MIDDLE_NAME": get_obj_value(enrollee, "demographic", "middleName"),
+            "DOB": get_obj_value(enrollee, "demographic", "dob"),
+            "GENDER": to_ardb_gender(get_obj_value(enrollee, "demographic", "gender")),
+            "EMAIL": get_obj_value(enrollee, "demographic", "email"),
+            "SS_NUMBER": get_obj_value(enrollee, "demographic", "ssn"),
+            "ADDRESS1": get_obj_value(
+                enrollee, "demographic", "address", "addressLine1"
+            ),
+            "ADDRESS2": get_obj_value(
+                enrollee, "demographic", "address", "addressLine2"
+            ),
+            "CITY": get_obj_value(enrollee, "demographic", "address", "city"),
+            "STATE": get_obj_value(enrollee, "demographic", "address", "state"),
+            "ZIP": get_obj_value(enrollee, "demographic", "address", "zipCode"),
+            "ZIP_4": get_obj_value(enrollee, "demographic", "address", "zipCode4"),
             "NAME_PREFIX": get_obj_value(
                 enrollee, "additionalInformation", "namePrefix"
             ),
@@ -92,23 +97,25 @@ class EnrolleeMapper:
                 "by": "system",
                 "at": to_datetime(get_obj_value(enrollee, "LAST_MODIFIED_DATE_TIME")),
             },
-            "firstName": get_obj_value(enrollee, "FIRST_NAME"),
-            "middleName": get_obj_value(enrollee, "MIDDLE_NAME"),
-            "lastName": get_obj_value(enrollee, "LAST_NAME"),
-            "gender": to_therapy_gender(get_obj_value(enrollee, "GENDER")),
-            "dob": to_datetime(enrollee_dob),
-            "formattedDob": enrollee_dob,
-            "email": get_obj_value(enrollee, "EMAIL"),
-            "phone": get_obj_value(enrollee, "PHONE_NUMBER"),
-            "ssn": get_obj_value(enrollee, "SS_NUMBER"),
-            "address": {
-                "addressLine1": get_obj_value(enrollee, "ADDRESS1"),
-                "addressLine2": get_obj_value(enrollee, "ADDRESS2"),
-                "city": get_obj_value(enrollee, "CITY"),
-                "state": get_obj_value(enrollee, "STATE"),
-                "zipCode": get_obj_value(enrollee, "ZIP"),
-                "zipCode4": get_obj_value(enrollee, "ZIP_4"),
+            "demographic": {
+                "firstName": get_obj_value(enrollee, "FIRST_NAME"),
+                "middleName": get_obj_value(enrollee, "MIDDLE_NAME"),
+                "lastName": get_obj_value(enrollee, "LAST_NAME"),
+                "gender": to_therapy_gender(get_obj_value(enrollee, "GENDER")),
+                "dob": to_datetime(enrollee_dob),
+                "formattedDob": enrollee_dob,
+                "email": get_obj_value(enrollee, "EMAIL"),
+                "phone": get_obj_value(enrollee, "PHONE_NUMBER"),
+                "address": {
+                    "addressLine1": get_obj_value(enrollee, "ADDRESS1"),
+                    "addressLine2": get_obj_value(enrollee, "ADDRESS2"),
+                    "city": get_obj_value(enrollee, "CITY"),
+                    "state": get_obj_value(enrollee, "STATE"),
+                    "zipCode": get_obj_value(enrollee, "ZIP"),
+                    "zipCode4": get_obj_value(enrollee, "ZIP_4"),
+                },
             },
+            "ssn": get_obj_value(enrollee, "SS_NUMBER"),
             "referenceId": get_obj_value(enrollee, "ENROLLEE_ID"),
             "additionalInformation": {
                 "namePrefix": get_obj_value(enrollee, "NAME_PREFIX"),
@@ -144,13 +151,7 @@ class EnrolleeMapper:
                 ),
             },
             "ardbDocuments": [
-                {
-                    "refId": None,
-                    "fileName": get_obj_value(file_metadata, "ardb_file_name"),
-                    "filePath": get_obj_value(file_metadata, "ardb_file_path"),
-                    "isReconciled": False,
-                    "updatedAt": get_obj_value(file_metadata, "ardb_file_processed_at"),
-                }
+                generate_file_metadata(file_metadata),
             ],
             "ardbSourceDocument": get_obj_value(file_metadata, "ardb_file_name"),
             "ardbLastModifiedDate": get_obj_value(

@@ -31,6 +31,21 @@ class MongoDbEncryptionConfigType(TypedDict):
     aws: MongoDbEncryptionAwsConfigType
 
 
+class DocumentsConfigType(TypedDict):
+    support_duplicate_documents: bool
+
+
+class ApplicationConfig(TypedDict):
+    node_env: str
+
+
+class S3BucketConfig(TypedDict):
+    bucket_name: str
+    access_key: str
+    secret_key: str
+    region: str
+
+
 class Config:
     @staticmethod
     def get_db() -> MongoDbConfigType:
@@ -97,3 +112,29 @@ class Config:
             port_str = f":{port}" if port else ""
 
             return f"{protocol}://{auth}{cluster_name}{port_str}/"
+
+    @staticmethod
+    def get_documents() -> DocumentsConfigType:
+        """Get documents configuration"""
+        return {
+            "support_duplicate_documents": (
+                True if ConfigMapper.SUPPORT_DUPLICATE_DOCUMENTS == "true" else False
+            ),
+        }
+
+    @staticmethod
+    def get_application() -> ApplicationConfig:
+        """Get application configuration"""
+        return {
+            "node_env": ConfigMapper.NODE_ENV,
+        }
+
+    @staticmethod
+    def get_s3_bucket() -> S3BucketConfig:
+        """Get S3 bucket configuration"""
+        return {
+            "bucket_name": ConfigMapper.AWS_S3_BUCKET_NAME,
+            "access_key": ConfigMapper.AWS_S3_ACCESS_KEY,
+            "secret_key": ConfigMapper.AWS_S3_SECRET_KEY,
+            "region": ConfigMapper.AWS_S3_REGION,
+        }

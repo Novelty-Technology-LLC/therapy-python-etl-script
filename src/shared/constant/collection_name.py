@@ -16,3 +16,5 @@ class CollectionName:
     DUMP_PROVIDER_CLAIM = "PYTHON_TEST_DUMP_PROVIDER_CLAIM"
 
     PROVIDER_CLAIMS = "providerClaims"
+
+    DOCUMENTS = "documents"

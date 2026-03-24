@@ -7,6 +7,6 @@ class Gender(str, Enum):
     OTHER = "OTHER"
 
 
-class InputFileType(Enum):
+class InputFileType(str, Enum):
     EXCEL = "xlsx"
     RPT = "rpt"

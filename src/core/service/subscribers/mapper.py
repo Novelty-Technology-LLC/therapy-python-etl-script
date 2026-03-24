@@ -3,6 +3,7 @@ from src.core.service.subscribers.entity import IArdbSubscriber, ITherapySubscri
 from src.shared.interface.etl.migration import FileMetadata
 from src.shared.utils.date import to_datetime
 from src.shared.utils.gender import to_ardb_gender, to_therapy_gender
+from src.shared.utils.migration import generate_file_metadata
 from src.shared.utils.obj import get_obj_value
 
 
@@ -30,16 +31,22 @@ class SubscriberMapper:
             "EMPLOYMENT_STATUS": get_obj_value(subscriber, "employment", "status"),
             "EFFECTIVE_DATE": get_obj_value(subscriber, "employment", "startDate"),
             "TERMINATION_DATE": get_obj_value(subscriber, "employment", "endDate"),
-            "LAST_NAME": get_obj_value(subscriber, "lastName"),
-            "FIRST_NAME": get_obj_value(subscriber, "firstName"),
-            "MIDDLE_NAME": get_obj_value(subscriber, "middleName"),
-            "DOB": get_obj_value(subscriber, "dob"),
-            "GENDER": to_ardb_gender(get_obj_value(subscriber, "gender")),
-            "EMAIL": get_obj_value(subscriber, "email"),
-            "ADDRESS1": get_obj_value(subscriber, "address", "addressLine1"),
-            "ADDRESS2": get_obj_value(subscriber, "address", "addressLine2"),
-            "CITY": get_obj_value(subscriber, "address", "city"),
-            "STATE": get_obj_value(subscriber, "address", "state"),
+            "LAST_NAME": get_obj_value(subscriber, "demographic", "lastName"),
+            "FIRST_NAME": get_obj_value(subscriber, "demographic", "firstName"),
+            "MIDDLE_NAME": get_obj_value(subscriber, "demographic", "middleName"),
+            "DOB": get_obj_value(subscriber, "demographic", "dob"),
+            "GENDER": to_ardb_gender(
+                get_obj_value(subscriber, "demographic", "gender")
+            ),
+            "EMAIL": get_obj_value(subscriber, "demographic", "email"),
+            "ADDRESS1": get_obj_value(
+                subscriber, "demographic", "address", "addressLine1"
+            ),
+            "ADDRESS2": get_obj_value(
+                subscriber, "demographic", "address", "addressLine2"
+            ),
+            "CITY": get_obj_value(subscriber, "demographic", "address", "city"),
+            "STATE": get_obj_value(subscriber, "demographic", "address", "state"),
             "ZIP": get_obj_value(subscriber, "address", "zipCode"),
             "ZIP_4": get_obj_value(subscriber, "address", "zipCode4"),
         }
@@ -70,8 +77,12 @@ class SubscriberMapper:
                 ),
             },
             "enrollee": {
-                "referenceId": get_obj_value(subscriber, "EN_ENROLLEE_ID"),
+                "referenceId": get_obj_value(subscriber, "ENROLLEE_ID"),
                 "refId": get_obj_value(subscriber, "enrollee_ref_to_therapy"),
+            },
+            "insuredEnrollee": {
+                "referenceId": get_obj_value(subscriber, "INSURED_ENROLLEE_ID"),
+                "refId": get_obj_value(subscriber, "insuredEnrollee_ref_to_therapy"),
             },
             "subscriberNumber": get_obj_value(subscriber, "SUBSCRIBER_ID"),
             "premiumGroup": {
@@ -89,21 +100,23 @@ class SubscriberMapper:
                 "endDate": to_datetime(termination_date),
                 "formattedTerminationDate": termination_date,
             },
-            "lastName": get_obj_value(subscriber, "LAST_NAME"),
-            "firstName": get_obj_value(subscriber, "FIRST_NAME"),
-            "middleName": get_obj_value(subscriber, "MIDDLE_NAME"),
-            "dob": to_datetime(enrollee_dob),
-            "formattedDob": enrollee_dob,
-            "gender": to_therapy_gender(get_obj_value(subscriber, "GENDER")),
-            "email": get_obj_value(subscriber, "EMAIL"),
-            "phone": get_obj_value(subscriber, "PHONE_NUMBER"),
-            "address": {
-                "addressLine1": get_obj_value(subscriber, "ADDRESS1"),
-                "addressLine2": get_obj_value(subscriber, "ADDRESS2"),
-                "city": get_obj_value(subscriber, "CITY"),
-                "state": get_obj_value(subscriber, "STATE"),
-                "zipCode": get_obj_value(subscriber, "ZIP"),
-                "zipCode4": get_obj_value(subscriber, "ZIP_4"),
+            "demographic": {
+                "lastName": get_obj_value(subscriber, "LAST_NAME"),
+                "firstName": get_obj_value(subscriber, "FIRST_NAME"),
+                "middleName": get_obj_value(subscriber, "MIDDLE_NAME"),
+                "dob": to_datetime(enrollee_dob),
+                "formattedDob": enrollee_dob,
+                "gender": to_therapy_gender(get_obj_value(subscriber, "GENDER")),
+                "email": get_obj_value(subscriber, "EMAIL"),
+                "phone": get_obj_value(subscriber, "PHONE_NUMBER"),
+                "address": {
+                    "addressLine1": get_obj_value(subscriber, "ADDRESS1"),
+                    "addressLine2": get_obj_value(subscriber, "ADDRESS2"),
+                    "city": get_obj_value(subscriber, "CITY"),
+                    "state": get_obj_value(subscriber, "STATE"),
+                    "zipCode": get_obj_value(subscriber, "ZIP"),
+                    "zipCode4": get_obj_value(subscriber, "ZIP_4"),
+                },
             },
             "policyNumber": get_obj_value(subscriber, "POLICY_NUMBER"),
             "histories": [],
@@ -128,7 +141,7 @@ class SubscriberMapper:
         enrollee: ITherapyEnrollee,
         file_metadata: FileMetadata,
     ) -> ITherapySubscriber:
-        enrollee_dob = get_obj_value(enrollee, "dob")
+        enrollee_dob = get_obj_value(enrollee, "demographic", "dob")
         effective_date = get_obj_value(subscriber, "EFFECTIVE_DATE")
         termination_date = get_obj_value(subscriber, "TERMINATION_DATE")
         return {
@@ -138,15 +151,17 @@ class SubscriberMapper:
             ),
             "created": {
                 "by": "system",
-                "at": to_datetime(get_obj_value(subscriber, "EN_CREATION_DATE")),
+                "at": to_datetime(get_obj_value(subscriber, "CREATION_DATE")),
             },
             "updated": {
                 "by": "system",
-                "at": to_datetime(
-                    get_obj_value(subscriber, "EN_LAST_MODIFIED_DATE_TIME")
-                ),
+                "at": to_datetime(get_obj_value(subscriber, "LAST_MODIFIED_DATE_TIME")),
             },
             "enrollee": {
+                "referenceId": get_obj_value(enrollee, "referenceId"),
+                "refId": get_obj_value(enrollee, "_id"),
+            },
+            "insuredEnrollee": {
                 "referenceId": get_obj_value(enrollee, "referenceId"),
                 "refId": get_obj_value(enrollee, "_id"),
             },
@@ -166,32 +181,36 @@ class SubscriberMapper:
                 "endDate": to_datetime(termination_date),
                 "formattedTerminationDate": termination_date,
             },
-            "lastName": get_obj_value(enrollee, "lastName"),
-            "firstName": get_obj_value(enrollee, "firstName"),
-            "middleName": get_obj_value(enrollee, "middleName"),
-            "dob": to_datetime(enrollee_dob),
-            "formattedDob": enrollee_dob,
-            "gender": get_obj_value(enrollee, "gender"),
-            "email": get_obj_value(enrollee, "email"),
-            "phone": get_obj_value(enrollee, "phone"),
-            "address": {
-                "addressLine1": get_obj_value(enrollee, "address", "addressLine1"),
-                "addressLine2": get_obj_value(enrollee, "address", "addressLine2"),
-                "city": get_obj_value(enrollee, "address", "city"),
-                "state": get_obj_value(enrollee, "address", "state"),
-                "zipCode": get_obj_value(enrollee, "address", "zipCode"),
-                "zipCode4": get_obj_value(enrollee, "address", "zipCode4"),
+            "demographic": {
+                "lastName": get_obj_value(enrollee, "demographic", "lastName"),
+                "firstName": get_obj_value(enrollee, "demographic", "firstName"),
+                "middleName": get_obj_value(enrollee, "demographic", "middleName"),
+                "dob": to_datetime(enrollee_dob),
+                "formattedDob": get_obj_value(enrollee, "demographic", "formattedDob"),
+                "gender": get_obj_value(enrollee, "demographic", "gender"),
+                "email": get_obj_value(enrollee, "demographic", "email"),
+                "phone": get_obj_value(enrollee, "demographic", "phone"),
+                "address": {
+                    "addressLine1": get_obj_value(
+                        enrollee, "demographic", "address", "addressLine1"
+                    ),
+                    "addressLine2": get_obj_value(
+                        enrollee, "demographic", "address", "addressLine2"
+                    ),
+                    "city": get_obj_value(enrollee, "demographic", "address", "city"),
+                    "state": get_obj_value(enrollee, "demographic", "address", "state"),
+                    "zipCode": get_obj_value(
+                        enrollee, "demographic", "address", "zipCode"
+                    ),
+                    "zipCode4": get_obj_value(
+                        enrollee, "demographic", "address", "zipCode4"
+                    ),
+                },
             },
             "policyNumber": get_obj_value(subscriber, "POLICY_NUMBER"),
             "histories": [],
             "ardbDocuments": [
-                {
-                    "refId": None,
-                    "fileName": get_obj_value(file_metadata, "ardb_file_name"),
-                    "filePath": get_obj_value(file_metadata, "ardb_file_path"),
-                    "isReconciled": False,
-                    "updatedAt": get_obj_value(file_metadata, "ardb_file_processed_at"),
-                }
+                generate_file_metadata(file_metadata),
             ],
             "ardbSourceDocument": get_obj_value(file_metadata, "ardb_file_name"),
             "ardbLastModifiedDate": get_obj_value(
