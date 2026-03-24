@@ -13,8 +13,8 @@ from src.shared.interface.common import (
 
 
 class IArdbSubscriber(TypedDict):
-    EL_ENROLLEE_ID: str
-    EL_INSURED_ENROLLEE_ID: str
+    ENROLLEE_ID: str
+    INSURED_ENROLLEE_ID: str
 
     SUBSCRIBER_ID: str
     PREMIUM_GROUP_ID: str
@@ -39,8 +39,8 @@ class IArdbSubscriber(TypedDict):
     ZIP: str
     ZIP_4: str
 
-    EN_CREATION_DATE: str
-    EN_LAST_MODIFIED_DATE_TIME: str
+    CREATION_DATE: str
+    LAST_MODIFIED_DATE_TIME: str
 
 
 class ITherapySubscriberPremiumGroup(IOldSystemReference):

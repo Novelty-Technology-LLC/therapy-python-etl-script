@@ -15,7 +15,7 @@ class PatientMapper:
         """Convert the patient therapy to ardb format"""
 
         result: IArdbPatient = {
-            "EN_ENROLLEE_ID": patient["enrollee"]["referenceId"],
+            "ENROLLEE_ID": patient["enrollee"]["referenceId"],
             # 'LAST_NAME': patient['demographic']['lastName'],
             # 'FIRST_NAME': patient['demographic']['firstName'],
             # 'MIDDLE_NAME': patient['demographic']['middleName'],
@@ -32,8 +32,8 @@ class PatientMapper:
             "RELATIONSHIP_CODE": patient["relationship"]["codeQualifier"],
             "MEMBER_ID": patient["memberId"],
             "SUBSCRIBER_ID": patient["subscriber"]["identificationCode"],
-            "EN_CREATION_DATE": patient["created"]["at"],
-            "EN_LAST_MODIFIED_DATE_TIME": patient["updated"]["at"],
+            "CREATION_DATE": patient["created"]["at"],
+            "LAST_MODIFIED_DATE_TIME": patient["updated"]["at"],
         }
 
         return result
@@ -58,11 +58,11 @@ class PatientMapper:
             "hasCompleteInfo": get_obj_value(patient, "hasCompleteInfo", default=True),
             "created": {
                 "by": "system",
-                "at": to_datetime(get_obj_value(patient, "EN_CREATION_DATE")),
+                "at": to_datetime(get_obj_value(patient, "CREATION_DATE")),
             },
             "updated": {
                 "by": "system",
-                "at": to_datetime(get_obj_value(patient, "EN_LAST_MODIFIED_DATE_TIME")),
+                "at": to_datetime(get_obj_value(patient, "LAST_MODIFIED_DATE_TIME")),
             },
             "enrollee": {
                 "referenceId": get_obj_value(enrollee, "referenceId"),

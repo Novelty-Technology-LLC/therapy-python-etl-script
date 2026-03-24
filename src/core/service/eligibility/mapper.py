@@ -20,8 +20,8 @@ class EligibilityMapper:
             "hasCompleteInfo": get_obj_value(
                 eligibility, "hasCompleteInfo", default=True
             ),
-            "EL_ENROLLEE_ID": eligibility["enrollee"]["referenceId"],
-            "EL_INSURED_ENROLLEE_ID": eligibility["enrollee"]["referenceId"],
+            "ENROLLEE_ID": eligibility["enrollee"]["referenceId"],
+            "INSURED_ENROLLEE_ID": eligibility["enrollee"]["referenceId"],
             "PRODUCT_ID": eligibility["product"]["referenceId"],
             "EFFECTIVE_DATE": eligibility["serviceDate"]["startDate"],
             "TERMINATION_DATE": eligibility["serviceDate"]["endDate"],
@@ -56,12 +56,12 @@ class EligibilityMapper:
             ),
             "created": {
                 "by": "system",
-                "at": to_datetime(get_obj_value(eligibility, "EL_CREATION_DATE")),
+                "at": to_datetime(get_obj_value(eligibility, "CREATION_DATE")),
             },
             "updated": {
                 "by": "system",
                 "at": to_datetime(
-                    get_obj_value(eligibility, "EL_LAST_MODIFIED_DATE_TIME")
+                    get_obj_value(eligibility, "LAST_MODIFIED_DATE_TIME")
                 ),
             },
             "enrollee": {
@@ -108,7 +108,7 @@ class EligibilityMapper:
             "additionalInformation": {
                 "isHandicapped": get_obj_value(eligibility, "HANDICAP_FLAG"),
                 "levelOfCareId": get_obj_value(eligibility, "LEVEL_OF_CARE_ID"),
-                "addReasonCode": eligibility["ADD_REASON_CODE"],
+                "addReasonCode": get_obj_value(eligibility, "ADD_REASON_CODE"),
                 "client": {
                     "mcoId": get_obj_value(eligibility, "CLIENT_MCO_ID"),
                     "programCode": get_obj_value(eligibility, "CLIENT_PROGRAM_CODE"),
