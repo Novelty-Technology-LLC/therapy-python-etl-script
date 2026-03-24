@@ -78,3 +78,4 @@ class FileMetadata(TypedDict):
     document_id: str
     file_extension: str
     file_type: str
+    file_size: int

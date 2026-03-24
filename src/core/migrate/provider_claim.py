@@ -1,3 +1,4 @@
+from typing import Optional
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -6,24 +7,31 @@ import time
 from pymongo.operations import UpdateMany, UpdateOne
 
 from src.core.migrate.base_etl import BaseEtl
+from src.core.service.documents.model import documentsModel
 from src.core.service.provider_claims.entity import ITherapyProviderClaim
 from src.core.service.provider_claims.model import provider_claims_model
 from src.core.data_frame_type.provider_claim import (
     PROVIDER_CLAIM_DATA_FRAME_TYPE,
     SELECTED_PROVIDER_CLAIM_COLS,
 )
+from src.shared.interface.document import DocumentStatusEnum
 from src.shared.interface.etl.migration import FileMetadata
 from src.shared.interface.migration import InputFileType
 from src.shared.utils.batch import get_total_batch
 from src.shared.utils.dataframe import batch_iterator
 from src.shared.utils.date import format_duration
+from src.shared.utils.migration import (
+    generate_file_metadata,
+    verify_and_generate_document,
+)
 from src.shared.utils.path import get_input_files_path
 
 
 class Provider_Claim_Etl(BaseEtl):
 
-    def __init__(self):
+    def __init__(self, input_file_path: Path):
         super().__init__()
+        self.input_file_path = input_file_path
 
     def load_provider_claim(self, df: pd.DataFrame, file_metadata: FileMetadata):
         print("=========== [START] Loading provider claim ===========")
@@ -73,7 +81,9 @@ class Provider_Claim_Etl(BaseEtl):
                                     "ardb_file_processed_at"
                                 ],
                             },
-                            "$push": {"ardbDocuments": file_metadata},
+                            "$push": {
+                                "ardbDocuments": generate_file_metadata(file_metadata)
+                            },
                         },
                     )
                 )
@@ -85,42 +95,69 @@ class Provider_Claim_Etl(BaseEtl):
         print("=========== [END] Loading provider claim ===========")
 
     def execute(self):
+
+        documentId: Optional[str] = None
         all_files = get_input_files_path(
-            input_file_path=Path("input-files/provider_claims"),
+            input_file_path=self.input_file_path,
             file_type=InputFileType.EXCEL,
         )
 
-        ardb_file_processed_at = datetime.now()
-        ardb_file_path = "ETL_SCRIPTS"
-
         for file in all_files:
-            start = time.perf_counter()
-            print(f"========== [START] Processing file: {file.name} ==========")
+            try:
+                start = time.perf_counter()
 
-            file_metadata = FileMetadata(
-                ardb_file_processed_at=ardb_file_processed_at,
-                ardb_file_name=file.name,
-                ardb_file_path=ardb_file_path,
-            )
+                document_response = verify_and_generate_document(
+                    file, self.support_duplicate_documents, "provider_claim"
+                )
 
-            df = pd.read_excel(
-                file, sheet_name="CLAIMS", dtype=PROVIDER_CLAIM_DATA_FRAME_TYPE
-            )
+                if document_response is None:
+                    continue
 
-            df = df.drop_duplicates(subset=["CLAIM_ID"], keep="first").reset_index(
-                drop=True
-            )
-            df.replace({np.nan: None}, inplace=True)
+                documentId = document_response.get("documentId")
+                file_metadata = document_response.get("file_metadata")
 
-            total_batches = get_total_batch(df)
-            print(f"Total batches: {total_batches}")
+                print(f"========== [START] Processing file: {file.name} ==========")
+                if documentId:
+                    documentsModel.get_model().update_one(
+                        {"_id": documentId},
+                        {"$set": {"status": DocumentStatusEnum.PROCESSING}},
+                    )
 
-            for batch_num, chunk in enumerate(batch_iterator(df)):
-                print(f"Processing batch {batch_num + 1} of {total_batches}")
+                df = pd.read_excel(
+                    file, sheet_name="CLAIMS", dtype=PROVIDER_CLAIM_DATA_FRAME_TYPE
+                )
 
-                self.load_provider_claim(chunk, file_metadata)
+                df = df.drop_duplicates(subset=["CLAIM_ID"], keep="first").reset_index(
+                    drop=True
+                )
+                df.replace({np.nan: None}, inplace=True)
 
-            elapsed = time.perf_counter() - start
-            print(
-                f"========== [END] Processing file: {file.name} in {format_duration(elapsed)} =========="
-            )
+                total_batches = get_total_batch(df)
+                print(f"Total batches: {total_batches}")
+
+                for batch_num, chunk in enumerate(batch_iterator(df)):
+                    print(f"Processing batch {batch_num + 1} of {total_batches}")
+
+                    self.load_provider_claim(chunk, file_metadata)
+
+                elapsed = time.perf_counter() - start
+                if documentId:
+                    documentsModel.get_model().update_one(
+                        {"_id": documentId},
+                        {"$set": {"status": DocumentStatusEnum.COMPLETED}},
+                    )
+                print(
+                    f"========== [END] Processing file: {file.name} in {format_duration(elapsed)} =========="
+                )
+            except Exception as e:
+                print(f"Error processing file: {file.name} - {e}")
+                if documentId:
+                    documentsModel.get_model().update_one(
+                        {"_id": documentId},
+                        {
+                            "$set": {
+                                "status": DocumentStatusEnum.FAILED,
+                                "reason": str(e),
+                            }
+                        },
+                    )
