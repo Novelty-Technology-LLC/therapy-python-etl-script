@@ -1,5 +1,6 @@
 from pathlib import Path
-from src.core.migrate.claim_rpt import Claim_Rpt_Etl
+
+from src.core.migrate.claim_rpt.etl import Claim_Rpt_Etl
 from src.core.migrate.excel.eligibility.eligibility import Eligibility_Etl_Migrate
 from src.core.migrate.provider_claim import Provider_Claim_Etl
 

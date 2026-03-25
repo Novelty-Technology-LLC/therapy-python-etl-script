@@ -38,8 +38,24 @@ def generate_file_metadata(file_metadata: FileMetadata):
     }
 
 
+def get_unique_documents(documents):
+    seen = set()
+    result = []
+
+    for document in documents:
+        if document["documentId"] not in seen:
+            seen.add(document["documentId"])
+            result.append(document)
+
+    return result
+
+
 def verify_and_generate_document(
-    file: Path, support_duplicate_documents: bool, s3_module: str
+    file: Path,
+    support_duplicate_documents: bool,
+    s3_module: str,
+    file_type: InputFileType,
+    enable_backup: bool = True,
 ) -> DocumentResponse | None:
     if not support_duplicate_documents:
         documentFromDb = documentsModel.get_model().find_one(
@@ -55,9 +71,11 @@ def verify_and_generate_document(
 
     receivedAt = datetime.now()
     s3_file_name = f"{timeStamp(receivedAt)}-{file.name}"
-    s3_key = f"{s3_module}/{s3_file_name}"
-    aws_s3_helper.upload_file(file, s3_key)
-    s3_prefix_key = aws_s3_helper._prefix_key(s3_key)
+    s3_key = f"{s3_module}/{s3_file_name}" if enable_backup else None
+
+    if enable_backup:
+        aws_s3_helper.upload_file(file, s3_key)
+    s3_prefix_key = aws_s3_helper._prefix_key(s3_key) if enable_backup else None
 
     documentId = generate_uuid()
     documentsModel.get_model().insert_one(
@@ -69,7 +87,7 @@ def verify_and_generate_document(
             "fileName": s3_file_name,
             "metadata": {
                 "destination": s3_prefix_key,
-                "source": "aws_s3",
+                "source": "aws_s3" if enable_backup else None,
                 "size": file.stat().st_size,
             },
         }
@@ -81,7 +99,7 @@ def verify_and_generate_document(
         ardb_file_processed_at=receivedAt,
         document_id=documentId,
         file_extension=file.suffix,
-        file_type=InputFileType.EXCEL,
+        file_type=file_type,
         original_file_name=file.name,
         file_size=file.stat().st_size,
     )

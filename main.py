@@ -7,7 +7,7 @@ from src.core.command.etl import etl_command
 @click.option(
     "-exec",
     "--execute",
-    default="ALL",
+    default="CLAIM_RPT",
     type=click.Choice(["ALL", "CLAIM_RPT", "PROVIDER_CLAIM", "ELIGIBILITY"]),
     help="ETL execute command",
 )

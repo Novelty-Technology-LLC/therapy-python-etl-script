@@ -99,7 +99,7 @@ class Provider_Claim_Etl(BaseEtl):
         documentId: Optional[str] = None
         all_files = get_input_files_path(
             input_file_path=self.input_file_path,
-            file_type=InputFileType.EXCEL,
+            file_type=InputFileType.RPT,
         )
 
         for file in all_files:
@@ -107,7 +107,11 @@ class Provider_Claim_Etl(BaseEtl):
                 start = time.perf_counter()
 
                 document_response = verify_and_generate_document(
-                    file, self.support_duplicate_documents, "provider_claim"
+                    file,
+                    self.support_duplicate_documents,
+                    "provider_claim",
+                    InputFileType.RPT,
+                    False,
                 )
 
                 if document_response is None:
