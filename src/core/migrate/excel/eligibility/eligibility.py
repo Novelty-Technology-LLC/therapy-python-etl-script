@@ -59,19 +59,22 @@ class Eligibility_Etl_Migrate(BaseEtl):
         self.input_file_path = input_file_path
 
     def execute(self):
-        documentId: Optional[str] = None
-
         all_files = get_input_files_path(
             input_file_path=self.input_file_path,
             file_type=InputFileType.EXCEL,
         )
 
         for file in all_files:
+            documentId: Optional[str] = None
             try:
                 start = time.perf_counter()
 
                 document_response = verify_and_generate_document(
-                    file, self.support_duplicate_documents, "eligibility"
+                    file,
+                    self.support_duplicate_documents,
+                    "eligibility",
+                    InputFileType.EXCEL,
+                    True,
                 )
 
                 if document_response is None:
