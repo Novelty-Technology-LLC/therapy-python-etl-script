@@ -62,7 +62,7 @@ class Claim_Rpt_Etl(BaseEtl):
                 document_response = verify_and_generate_document(
                     file,
                     self.support_duplicate_documents,
-                    "claim_rpt",
+                    "ardb-backup/claim_rpt",
                     InputFileType.RPT,
                     False,
                 )

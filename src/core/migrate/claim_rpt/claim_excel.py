@@ -61,7 +61,7 @@ class Claim_Excel_Etl(BaseEtl):
                 document_response = verify_and_generate_document(
                     file,
                     self.support_duplicate_documents,
-                    "provider_claims",
+                    "ardb-backup/provider_claims",
                     InputFileType.EXCEL,
                     self.enable_backup,
                 )
