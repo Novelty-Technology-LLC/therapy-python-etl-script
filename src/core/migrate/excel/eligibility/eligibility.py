@@ -58,11 +58,20 @@ class Eligibility_Etl_Migrate(BaseEtl):
         )
         self.input_file_path = input_file_path
 
+        self.eligibility_dump_records_model = DumpRecordsModel(
+            collection_name=CollectionName.DUMP_ELIGIBILITY
+        )
+        self.enrollee_dump_records_model = DumpRecordsModel(
+            collection_name=CollectionName.DUMP_ENROLLEES
+        )
+
     def execute(self):
         all_files = get_input_files_path(
             input_file_path=self.input_file_path,
             file_type=InputFileType.EXCEL,
         )
+
+        print(f"📁 Total files: {len(all_files)}")
 
         for file in all_files:
             documentId: Optional[str] = None
@@ -132,7 +141,6 @@ class Eligibility_Etl_Migrate(BaseEtl):
                     self._load_sheet(
                         file_path,
                         sheet_name,
-                        CollectionName.DUMP_ENROLLEES,
                         ENROLLEE_MIGRATE_ETL_DATA_FRAME_TYPE,
                         self._load_enrollee,
                         file_metadata,
@@ -142,7 +150,6 @@ class Eligibility_Etl_Migrate(BaseEtl):
                     self._load_sheet(
                         file_path,
                         sheet_name,
-                        CollectionName.DUMP_ELIGIBILITY,
                         ELIGIBILITY_MIGRATE_ETL_DATA_FRAME_TYPE,
                         self._load_eligibility,
                         file_metadata,
@@ -155,13 +162,11 @@ class Eligibility_Etl_Migrate(BaseEtl):
         self,
         file_path: Path,
         sheet_name: SheetName,
-        dump_collection_name: CollectionName,
         data_frame_type: dict,
         execution_method: Callable,
         file_metadata: FileMetadata,
     ):
         print(f"=========== [START] Loading [{sheet_name}] Sheet ===========")
-        dump_records_model = DumpRecordsModel(collection_name=dump_collection_name)
 
         df = pd.read_excel(file_path, sheet_name=sheet_name, dtype=data_frame_type)
         df.replace({np.nan: None}, inplace=True)
@@ -170,25 +175,11 @@ class Eligibility_Etl_Migrate(BaseEtl):
         total_batches = get_total_batch(df)
         print(f"Total batches: {total_batches}")
 
-        # file_metadata = FileMetadata(
-        #     ardb_file_processed_at=ardb_file_processed_at,
-        #     ardb_file_name=file_path.name,
-        #     ardb_file_path=ardb_file_path,
-        # )
-
         for batch_num, chunk in enumerate(batch_iterator(df)):
             print(f"Processing batch {batch_num + 1} of {total_batches}")
 
             # self.load_enrollee(chunk, file_metadata)
             execution_method(chunk, file_metadata)
-
-            print("========= DUMP RECORDS ==========")
-            df["ardbSourceDocument"] = file_path.name
-            df["ardbLastModifiedDate"] = get_obj_value(
-                file_metadata, "ardb_file_processed_at"
-            )
-
-            dump_records_model.insert_many(df.to_dict("records"))
 
         print(f"=========== [END] Loading [{sheet_name}] Sheet ===========")
 
@@ -285,12 +276,24 @@ class Eligibility_Etl_Migrate(BaseEtl):
                 ]
             )
 
+        print("========= DUMP ENROLLEES RECORDS ==========")
+        df["ardbSourceDocument"] = file_metadata.get("ardb_file_name")
+        df["ardbLastModifiedDate"] = file_metadata.get("ardb_file_processed_at")
+
+        self.enrollee_dump_records_model.insert_many(df.to_dict("records"))
+
         print("=========== [END] Loading enrollees ===========")
 
     def _load_eligibility(self, df: pd.DataFrame, file_metadata: FileMetadata):
         self._execute_subscriber(df, file_metadata)
         self._execute_patient(df, file_metadata)
         self._execute_eligibility(df, file_metadata)
+
+        print("========= DUMP ELIGIBILITY RECORDS ==========")
+        df["ardbSourceDocument"] = file_metadata.get("ardb_file_name")
+        df["ardbLastModifiedDate"] = file_metadata.get("ardb_file_processed_at")
+
+        self.eligibility_dump_records_model.insert_many(df.to_dict("records"))
 
     def _execute_subscriber(self, df: pd.DataFrame, file_metadata: FileMetadata):
         print("=========== [START] Loading subscribers ===========")
