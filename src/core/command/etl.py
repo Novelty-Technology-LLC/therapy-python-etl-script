@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from src.core.migrate.claim_rpt.claim_excel import Claim_Excel_Etl
 from src.core.migrate.claim_rpt.etl import Claim_Rpt_Etl
 from src.core.migrate.excel.eligibility.eligibility import Eligibility_Etl_Migrate
 from src.core.migrate.provider_claim import Provider_Claim_Etl
@@ -20,7 +21,10 @@ class ETLCommand:
                 with Claim_Rpt_Etl(Path("input-files/claim_rpt")) as etl:
                     etl.execute()
             case "PROVIDER_CLAIM":
-                with Provider_Claim_Etl(Path("input-files/provider_claims")) as etl:
+                # with Provider_Claim_Etl(Path("input-files/provider_claims")) as etl:
+                #     etl.execute()
+
+                with Claim_Excel_Etl(Path("input-files/provider_claims")) as etl:
                     etl.execute()
 
             case "ELIGIBILITY":
