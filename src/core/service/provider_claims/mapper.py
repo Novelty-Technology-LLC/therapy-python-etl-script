@@ -587,7 +587,11 @@ class ProviderClaimMapper:
             "SERVICE_PAYMENT_NOTES": get_obj_value(
                 provider_service_line, "SERVICE_PAYMENT_NOTES"
             ),
-            "ITEM_NUMBER": get_obj_value(provider_service_line, "ITEM_NUMBER"),
+            "ITEM_NUMBER": (
+                get_obj_value(provider_service_line, "ITEM_NUMBER")
+                if get_obj_value(provider_service_line, "ITEM_NUMBER")
+                else get_obj_value(provider_service_line, "SH_ITEM_NUMBER")
+            ),
             "CLAIM_TYPE": get_obj_value(provider_service_line, "CLAIM_TYPE"),
             "ENCOUNTER_ID": get_obj_value(provider_service_line, "ENCOUNTER_ID"),
             "CODE": get_obj_value(provider_service_line, "CODE"),

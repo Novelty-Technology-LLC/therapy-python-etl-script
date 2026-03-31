@@ -14,7 +14,7 @@ from src.core.migrate.claim_rpt.data_type.provider_claim_data_type import (
     PROVIDER_CLAIM_DATA_FRAME_TYPE,
 )
 from src.core.migrate.claim_rpt.data_type.service_line_data_type import (
-    SERVICE_LINE_MIGRATE_COLS,
+    SERVICE_LINE_MIGRATE_COLS_EXCEL,
 )
 from src.core.service.documents.model import documentsModel
 from src.core.service.dump_records.model import DumpRecordsModel
@@ -51,11 +51,12 @@ class Claim_Excel_Etl(BaseEtl):
         all_files = get_input_files_path(
             input_file_path=self.input_file_path, file_type=InputFileType.EXCEL
         )
+        print(f"📁 Total files: {len(all_files)}")
 
         for file in all_files:
             documentId: Optional[str] = None
             try:
-                print(f"=========== [START] Processing file: {file.name} ===========")
+                print(f"===========📁 [START] Processing file: {file.name} ===========")
 
                 start = time.perf_counter()
                 document_response = verify_and_generate_document(
@@ -78,11 +79,13 @@ class Claim_Excel_Etl(BaseEtl):
                         {"$set": {"status": DocumentStatusEnum.PROCESSING}},
                     )
 
+                print("===========📊 [START] Load on data frame ===========")
                 df = pd.read_excel(
                     file,
                     sheet_name="CLAIMS",
                     dtype=PROVIDER_CLAIM_DATA_FRAME_TYPE,
                 )
+                print("===========📊 [END] Load on data frame ===========")
 
                 # Batch processing
                 total_batches = get_total_batch(df)
@@ -135,7 +138,7 @@ class Claim_Excel_Etl(BaseEtl):
         claim_df.replace({np.nan: None}, inplace=True)
 
         service_line_df = (
-            chunk[SERVICE_LINE_MIGRATE_COLS]
+            chunk[SERVICE_LINE_MIGRATE_COLS_EXCEL]
             .drop_duplicates(
                 subset=[
                     "CODE",
@@ -288,6 +291,7 @@ class Claim_Excel_Etl(BaseEtl):
                     )
 
         # Db operations
+        print(f"==========🛢 [START] [CLAIMS] Saving to ==========")
         if len(inserted_provider_claims) > 0:
             provider_claims_model.insert_many(inserted_provider_claims)
 
@@ -313,5 +317,9 @@ class Claim_Excel_Etl(BaseEtl):
                 ]
             )
 
+        print(f"==========🛢 [END] [CLAIMS] Saved to database successfully ==========")
+
         print("======== PROVIDER CLAIMS [DUMP RECORDS] ==========")
+        chunk["ardbSourceDocument"] = file_metadata.get("ardb_file_name")
+        chunk["ardbLastModifiedDate"] = file_metadata.get("ardb_file_processed_at")
         self.dump_records_model.insert_many(chunk.to_dict("records"))

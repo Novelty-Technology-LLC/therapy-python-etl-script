@@ -21,9 +21,6 @@ class ETLCommand:
                 with Claim_Rpt_Etl(Path("input-files/claim_rpt")) as etl:
                     etl.execute()
             case "PROVIDER_CLAIM":
-                # with Provider_Claim_Etl(Path("input-files/provider_claims")) as etl:
-                #     etl.execute()
-
                 with Claim_Excel_Etl(Path("input-files/provider_claims")) as etl:
                     etl.execute()
 

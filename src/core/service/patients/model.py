@@ -16,12 +16,18 @@ class PatientsModel(BaseModel):
                 IndexModel(
                     [("enrollee.referenceId", ASCENDING)],
                     name="idx_enrollee_reference_id",
+                    background=True,
                 ),
                 IndexModel(
                     [("subscriber.identificationCode", ASCENDING)],
                     name="idx_subscriber_identification_code",
+                    background=True,
                 ),
-                IndexModel([("memberId", ASCENDING)], name="idx_member_id"),
+                IndexModel(
+                    [("memberId", ASCENDING)],
+                    name="idx_member_id",
+                    background=True,
+                ),
                 IndexModel(
                     [
                         ("enrollee.referenceId", ASCENDING),
@@ -29,6 +35,7 @@ class PatientsModel(BaseModel):
                         ("memberId", ASCENDING),
                     ],
                     name="idx_patient_enrollee_subscriber_member_id",
+                    background=True,
                 ),
             ]
         )

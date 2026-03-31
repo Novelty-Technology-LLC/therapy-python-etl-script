@@ -17,8 +17,9 @@ class ProviderClaimsModel(BaseModel):
             [
                 IndexModel(
                     [("CLAIM_ID", ASCENDING)],
-                    name="idx_claim_id",
+                    name="idx_claim_id_unique",
                     background=True,
+                    unique=True,
                 )
             ],
         )
