@@ -32,7 +32,7 @@ class ProviderClaimMapper:
             ),
         }
 
-        old_provider_claim_diagnosis_codes: list[IProviderClaimDiagnosisCode] = []
+        old_provider_claim_diagnosis_codes: List[IProviderClaimDiagnosisCode] = []
         if old_provider_claim is not None:
             old_provider_claim_diagnosis_codes = old_provider_claim.get(
                 "DIAGNOSIS_CODES", []
@@ -432,10 +432,10 @@ class ProviderClaimMapper:
 
     def to_therapy_service_line_format(
         self,
-        provider_service_lines: list(IArdbProviderClaim),
-        old_provider_service_lines: list(IProviderClaimServiceLine),
-    ) -> list[IProviderClaimServiceLine]:
-        response: list[IProviderClaimServiceLine] = []
+        provider_service_lines: List[IArdbProviderClaim],
+        old_provider_service_lines: List[IProviderClaimServiceLine],
+    ) -> List[IProviderClaimServiceLine]:
+        response: List[IProviderClaimServiceLine] = []
 
         for provider_service_line in provider_service_lines:
 
