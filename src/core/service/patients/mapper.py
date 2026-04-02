@@ -48,9 +48,9 @@ class PatientMapper:
     ) -> ITherapyPatient:
         name = get_name(
             {
-                "firstName": get_obj_value(subscriber, "firstName"),
-                "middleName": get_obj_value(subscriber, "middleName"),
-                "lastName": get_obj_value(subscriber, "lastName"),
+                "firstName": get_obj_value(subscriber, "demographic", "firstName"),
+                "middleName": get_obj_value(subscriber, "demographic", "middleName"),
+                "lastName": get_obj_value(subscriber, "demographic", "lastName"),
             }
         )
 

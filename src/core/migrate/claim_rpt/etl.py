@@ -62,7 +62,7 @@ class Claim_Rpt_Etl(BaseEtl):
                 document_response = verify_and_generate_document(
                     file,
                     self.support_duplicate_documents,
-                    "claim_rpt",
+                    "ardb-backup/claim_rpt",
                     InputFileType.RPT,
                     False,
                 )
@@ -306,8 +306,8 @@ class Claim_Rpt_Etl(BaseEtl):
                             ]
                         )
 
-                    print("======== PROVIDER CLAIMS [DUMP RECORDS] ==========")
-                    self.dump_records_model.insert_many(chunk.to_dict("records"))
+                    # print("======== PROVIDER CLAIMS [DUMP RECORDS] ==========")
+                    # self.dump_records_model.insert_many(chunk.to_dict("records"))
 
                     print(
                         f"=========== [END] Loading provider claims of batch {i + 1} ==========="

@@ -109,7 +109,7 @@ class Provider_Claim_Etl(BaseEtl):
                 document_response = verify_and_generate_document(
                     file,
                     self.support_duplicate_documents,
-                    "provider_claim",
+                    "ardb-backup/provider_claim",
                     InputFileType.RPT,
                     False,
                 )

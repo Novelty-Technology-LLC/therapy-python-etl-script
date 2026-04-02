@@ -81,7 +81,7 @@ class Eligibility_Etl_Migrate(BaseEtl):
                 document_response = verify_and_generate_document(
                     file,
                     self.support_duplicate_documents,
-                    "eligibility",
+                    "ardb-backup/eligibility",
                     InputFileType.EXCEL,
                     True,
                 )
