@@ -20,3 +20,5 @@ class CollectionName:
     PROVIDER_CLAIMS = "PYTHON_TEST_PROVIDER_CLAIMS"
 
     DOCUMENTS = "PYTHON_TEST_DOCUMENTS"
+
+    PRODUCTS = "products"

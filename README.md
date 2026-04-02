@@ -198,6 +198,16 @@ python main.py --execute CLAIM_RPT
 python main.py --execute PROVIDER_CLAIM
 ```
 
+**Fix subscriber name in patient Only:**
+```bash
+python main.py --execute PATIENT_FIX_SUBSCRIBER_NAME
+```
+
+**Fix product name and patient formatted date on eligibility Only:**
+```bash
+python main.py --execute ELIGIBILITY_FIX_PRODUCT_AND_PATIENT_DOB_PATCH
+```
+
 ### Command Options
 
 ```bash

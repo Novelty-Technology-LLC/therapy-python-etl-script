@@ -7,8 +7,18 @@ from src.core.command.etl import etl_command
 @click.option(
     "-exec",
     "--execute",
-    default="CLAIM_RPT",
-    type=click.Choice(["ALL", "CLAIM_RPT", "PROVIDER_CLAIM", "ELIGIBILITY"]),
+    # default="ELIGIBILITY_FIX_PRODUCT_AND_PATIENT_DOB_PATCH",
+    type=click.Choice(
+        [
+            "ALL",
+            "CLAIM_RPT",
+            "PROVIDER_CLAIM",
+            "ELIGIBILITY",
+            "PATIENT_FIX_SUBSCRIBER_NAME",
+            "ELIGIBILITY_FIX_PRODUCT_AND_PATIENT_DOB_PATCH",
+            # "TEST",
+        ]
+    ),
     help="ETL execute command",
 )
 def main(execute):
