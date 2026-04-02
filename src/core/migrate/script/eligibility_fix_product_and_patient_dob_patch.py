@@ -6,6 +6,7 @@ from src.core.service.eligibility.entity import ITherapyEligibility
 from src.core.service.eligibility.model import eligibilityModel
 from src.core.service.products.entity import ITherapyProduct
 from src.core.service.products.model import productsModel
+from src.shared.constant.constant import BATCH_SIZE
 from src.shared.utils.batch import get_total_batch_count
 from src.shared.utils.obj import get_obj_value
 
@@ -13,7 +14,7 @@ from src.shared.utils.obj import get_obj_value
 class EligibilityFixProductAndPatientDobPatch(BaseEtl):
     def __init__(self):
         super().__init__()
-        self.batch_size = 100
+        self.batch_size = BATCH_SIZE
 
     def execute(self):
         total_count = eligibilityModel.get_model().count_documents(filter={})

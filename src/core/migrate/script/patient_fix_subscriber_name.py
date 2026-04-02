@@ -4,6 +4,7 @@ from src.core.migrate.base_etl import BaseEtl
 from src.core.service.patients.entity import ITherapyPatient
 from src.core.service.patients.model import patientsModel
 from src.core.service.subscribers.entity import ITherapySubscriber
+from src.shared.constant.constant import BATCH_SIZE
 from src.shared.utils.batch import get_total_batch_count
 from src.core.service.subscribers.model import subscribersModel
 from src.shared.utils.name import get_name
@@ -13,7 +14,7 @@ from src.shared.utils.obj import get_obj_value
 class PatientFixSubscriberName(BaseEtl):
     def __init__(self):
         super().__init__()
-        self.batch_size = 100
+        self.batch_size = BATCH_SIZE
 
     def execute(self):
         total_count = patientsModel.get_model().count_documents(filter={})
