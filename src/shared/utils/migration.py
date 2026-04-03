@@ -1,6 +1,6 @@
 from datetime import datetime
 from pathlib import Path
-from typing import TypedDict
+from typing import Optional, TypedDict
 import uuid_utils as uuid
 
 from src.core.service.documents.model import documentsModel
@@ -56,12 +56,14 @@ def verify_and_generate_document(
     s3_module: str,
     file_type: InputFileType,
     enable_backup: bool = True,
+    etl_type: str | None = None,
 ) -> DocumentResponse | None:
     if not support_duplicate_documents:
         documentFromDb = documentsModel.get_model().find_one(
             {
                 "originalName": file.name,
                 "status": {"$ne": DocumentStatusEnum.FAILED},
+                **(etl_type and {"metadata.etlType": etl_type} or {}),
             }
         )
 
@@ -89,6 +91,7 @@ def verify_and_generate_document(
                 "destination": s3_prefix_key,
                 "source": "aws_s3" if enable_backup else None,
                 "size": file.stat().st_size,
+                **(etl_type and {"etlType": etl_type} or {}),
             },
         }
     )

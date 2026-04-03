@@ -39,6 +39,7 @@ class ReceiptDetailNote_Etl(BaseEtl):
         self.enable_backup = False
         self.file_type = InputFileType.EXCEL
         self.sheet_name = "RECEIPTS DETAIL"
+        self.etl_type = "RECEIPT_DETAIL_NOTE"
 
     def execute(self):
         all_files = get_input_files_path(
@@ -48,17 +49,18 @@ class ReceiptDetailNote_Etl(BaseEtl):
 
         for file in all_files:
             documentId: Optional[str] = None
+            start = time.perf_counter()
 
             try:
                 print(f"===========📁 [START] Processing file: {file.name} ===========")
 
-                start = time.perf_counter()
                 document_response = verify_and_generate_document(
                     file,
                     self.support_duplicate_documents,
                     "ardb-backup/receipt_detail",
                     self.file_type,
                     self.enable_backup,
+                    self.etl_type,
                 )
                 if document_response is None:
                     continue
@@ -123,21 +125,25 @@ class ReceiptDetailNote_Etl(BaseEtl):
                         },
                     )
 
+                print(
+                    f"===========📊 [END] Failed to process file: {file.name} in {format_duration(time.perf_counter() - start)} ==========="
+                )
+
     def _load_data(self, chunk: pd.DataFrame, file_metadata: FileMetadata):
         print("===========📊 [START] Load data ===========")
         data_load_time = time.perf_counter()
 
-        chunk = chunk[chunk["PAYMENT_NOTES"].notna()]
+        chunk = chunk[chunk["PAYMENT_NOTES"].notna()].reset_index(drop=True)
         chunk.replace({np.nan: None}, inplace=True)
 
         # --- Collect IDs for batch DB queries ---
-        collect_invoice_billing_ids: Set[str] = set()
+        collect_invoice_billing_numbers: Set[str] = set()
         collect_receipt_detail_reference_ids: Set[str] = set()
 
         for row in chunk.to_dict(orient="records"):
-            invoice_billing_id = row.get("INVOICE_BILLING_ID")
-            if invoice_billing_id:
-                collect_invoice_billing_ids.add(invoice_billing_id)
+            invoice_billing_number = row.get("INVOICE_BILLING_ID")
+            if invoice_billing_number:
+                collect_invoice_billing_numbers.add(invoice_billing_number)
 
             receipt_detail_id = row.get("RECEIPT_DETAIL_ID")
             if receipt_detail_id:
@@ -149,7 +155,7 @@ class ReceiptDetailNote_Etl(BaseEtl):
                 invoiceBillingsModel.get_model().find(
                     filter={
                         "invoiceBillingNumber": {
-                            "$in": list(collect_invoice_billing_ids)
+                            "$in": list(collect_invoice_billing_numbers)
                         }
                     },
                     projection={
@@ -160,7 +166,7 @@ class ReceiptDetailNote_Etl(BaseEtl):
                     },
                 )
             )
-            if collect_invoice_billing_ids
+            if collect_invoice_billing_numbers
             else []
         )
 
@@ -240,6 +246,7 @@ class ReceiptDetailNote_Etl(BaseEtl):
             receipt_detail_id = row.get("RECEIPT_DETAIL_ID")
             payment_note = row.get("PAYMENT_NOTES")
             date_entered = row.get("DATE_ENTERED")
+            invoice_billing_number = row.get("INVOICE_BILLING_ID")
             to_date_entered = to_datetime(date_entered)
 
             if not payment_note or not receipt_detail_id:
@@ -252,8 +259,8 @@ class ReceiptDetailNote_Etl(BaseEtl):
             invoice_billing = invoice_billing_by_num.get(
                 receipt_detail.get("invoiceBillingNumber")
             )
-            if not invoice_billing:
-                continue
+            # if not invoice_billing:
+            #     continue
 
             rd_id = receipt_detail.get("_id")
             therapy_note = therapy_note_by_rd_id.get(rd_id)
@@ -270,6 +277,7 @@ class ReceiptDetailNote_Etl(BaseEtl):
                         invoice_billing,
                         payment_note,
                         to_date_entered,
+                        invoice_billing_number,
                         file_metadata,
                     )
                     inserted_notes_by_rd_id[rd_id] = new_note
@@ -354,6 +362,7 @@ class ReceiptDetailNote_Etl(BaseEtl):
         invoice_billing: dict,
         payment_note: str,
         to_date_entered: datetime,
+        invoice_billing_number: str,
         file_metadata: FileMetadata,
     ) -> ITherapyNote:
         return {
@@ -373,8 +382,11 @@ class ReceiptDetailNote_Etl(BaseEtl):
                     ),
                 },
                 "invoiceBillingRef": {
-                    "refId": invoice_billing.get("_id"),
-                    "identificationCode": invoice_billing.get("invoiceBillingNumber"),
+                    "refId": get_obj_value(invoice_billing, "_id"),
+                    "identificationCode": get_obj_value(
+                        invoice_billing, "invoiceBillingNumber"
+                    )
+                    or invoice_billing_number,
                 },
                 "patientRef": {
                     "refId": get_obj_value(invoice_billing, "patient", "refId"),
@@ -383,27 +395,33 @@ class ReceiptDetailNote_Etl(BaseEtl):
                     ),
                     "name": get_obj_value(invoice_billing, "patient", "name"),
                 },
-                "procedureCode": receipt_detail.get("procedureCode"),
-                "serviceDate": receipt_detail.get("serviceDate"),
+                "procedureCode": get_obj_value(receipt_detail, "procedureCode"),
+                "serviceDate": get_obj_value(receipt_detail, "serviceDate"),
                 "receiptDetailRef": {
-                    "refId": receipt_detail.get("_id"),
-                    "identificationCode": receipt_detail.get("procedureCode"),
+                    "refId": get_obj_value(receipt_detail, "_id"),
+                    "identificationCode": get_obj_value(
+                        receipt_detail, "procedureCode"
+                    ),
                 },
                 "invoiceBillingDetailRef": {
-                    "refId": receipt_detail.get("invoiceBillingDetailId"),
-                    "identificationCode": receipt_detail.get("procedureCode"),
+                    "refId": get_obj_value(receipt_detail, "invoiceBillingDetailId"),
+                    "identificationCode": get_obj_value(
+                        receipt_detail, "procedureCode"
+                    ),
                 },
                 "receiptRef": {
-                    "refId": receipt_detail.get("receiptId"),
+                    "refId": get_obj_value(receipt_detail, "receiptId"),
                     "identificationCode": get_obj_value(
                         receipt_detail, "receipt", "referenceId"
                     ),
-                    "name": receipt_detail.get("checkNumber"),
+                    "name": get_obj_value(receipt_detail, "checkNumber"),
                 },
                 "invoicePaymentReceiptRef": {
-                    "refId": receipt_detail.get("invoicePaymentReceiptId"),
-                    "identificationCode": receipt_detail.get("invoiceBillingNumber"),
-                    "name": receipt_detail.get("invoiceBillingNumber"),
+                    "refId": get_obj_value(receipt_detail, "invoicePaymentReceiptId"),
+                    "identificationCode": get_obj_value(
+                        receipt_detail, "invoiceBillingNumber"
+                    ),
+                    "name": get_obj_value(receipt_detail, "invoiceBillingNumber"),
                 },
                 "ardbSourceDocument": get_obj_value(
                     file_metadata, "original_file_name"
