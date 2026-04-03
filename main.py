@@ -7,7 +7,7 @@ from src.core.command.etl import etl_command
 @click.option(
     "-exec",
     "--execute",
-    # default="ELIGIBILITY_FIX_PRODUCT_AND_PATIENT_DOB_PATCH",
+    default="TEST",
     type=click.Choice(
         [
             "ALL",
@@ -16,6 +16,7 @@ from src.core.command.etl import etl_command
             "ELIGIBILITY",
             "PATIENT_FIX_SUBSCRIBER_NAME",
             "ELIGIBILITY_FIX_PRODUCT_AND_PATIENT_DOB_PATCH",
+            "RECEIPT_DETAIL_NOTE",
             # "TEST",
         ]
     ),

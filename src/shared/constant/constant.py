@@ -1,1 +1,2 @@
 BATCH_SIZE = 1000
+SYSTEM_USER = "System"

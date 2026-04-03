@@ -95,6 +95,10 @@ class IHistory(TypedDict, Generic[T], total=False):
     ]  # Represents Partial<T & { updated: AssignerEntity }>
 
 
+class ITherapyHistory(TypedDict, Generic[T], total=False):
+    histories: Optional[List[T]]
+
+
 class IBaseEntity(TypedDict):
     _id: str
     created: AdminAssignerEntity

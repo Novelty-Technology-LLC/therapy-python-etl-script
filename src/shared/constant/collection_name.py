@@ -22,3 +22,10 @@ class CollectionName:
     DOCUMENTS = "PYTHON_TEST_DOCUMENTS"
 
     PRODUCTS = "products"
+
+    THERAPY_NOTES = "PYTHON_TEST_THERAPY_NOTES"
+
+    RECEIPTS = "receipts"
+    RECEIPT_DETAILS = "receiptDetails"
+    INVOICE_BILLINGS = "invoiceBillings"
+    INVOICE_BILLING_DETAILS = "invoiceBillingDetails"

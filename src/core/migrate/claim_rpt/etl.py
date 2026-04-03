@@ -336,4 +336,3 @@ class Claim_Rpt_Etl(BaseEtl):
                             }
                         },
                     )
-                print(f"Error processing file: {file.name} - {e}")

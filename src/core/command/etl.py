@@ -4,6 +4,7 @@ from src.core.migrate.claim_rpt.claim_excel import Claim_Excel_Etl
 from src.core.migrate.claim_rpt.etl import Claim_Rpt_Etl
 from src.core.migrate.excel.eligibility.eligibility import Eligibility_Etl_Migrate
 from src.core.migrate.provider_claim import Provider_Claim_Etl
+from src.core.migrate.receipt_detail_note.etl import ReceiptDetailNote_Etl
 from src.core.migrate.script.eligibility_fix_product_and_patient_dob_patch import (
     EligibilityFixProductAndPatientDobPatch,
 )
@@ -38,6 +39,10 @@ class ETLCommand:
 
             case "ELIGIBILITY_FIX_PRODUCT_AND_PATIENT_DOB_PATCH":
                 with EligibilityFixProductAndPatientDobPatch() as etl:
+                    etl.execute()
+
+            case "RECEIPT_DETAIL_NOTE":
+                with ReceiptDetailNote_Etl(Path("input-files/receipt_detail")) as etl:
                     etl.execute()
 
             case _:
