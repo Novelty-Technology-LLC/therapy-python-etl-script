@@ -39,9 +39,9 @@ class Claim_Excel_Etl(BaseEtl):
     def __init__(self, input_file_path: Path):
         super().__init__()
         self.input_file_path = input_file_path
-        self.dump_records_model = DumpRecordsModel(
-            collection_name=CollectionName.DUMP_PROVIDER_CLAIM
-        )
+        # self.dump_records_model = DumpRecordsModel(
+        #     collection_name=CollectionName.DUMP_PROVIDER_CLAIM
+        # )
         self.support_duplicate_documents = Config.get_documents().get(
             "support_duplicate_documents"
         )
@@ -319,7 +319,7 @@ class Claim_Excel_Etl(BaseEtl):
 
         print(f"==========🛢 [END] [CLAIMS] Saved to database successfully ==========")
 
-        print("======== PROVIDER CLAIMS [DUMP RECORDS] ==========")
-        chunk["ardbSourceDocument"] = file_metadata.get("ardb_file_name")
-        chunk["ardbLastModifiedDate"] = file_metadata.get("ardb_file_processed_at")
-        self.dump_records_model.insert_many(chunk.to_dict("records"))
+        # print("======== PROVIDER CLAIMS [DUMP RECORDS] ==========")
+        # chunk["ardbSourceDocument"] = file_metadata.get("ardb_file_name")
+        # chunk["ardbLastModifiedDate"] = file_metadata.get("ardb_file_processed_at")
+        # self.dump_records_model.insert_many(chunk.to_dict("records"))

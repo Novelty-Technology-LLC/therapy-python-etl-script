@@ -46,11 +46,12 @@ class ProviderClaimRptChangeToExcel(BaseEtl):
             )
 
             convert_process_start = time.perf_counter()
-            file_name = f"{timeStamp(datetime.now())}_{file.stem}.xlsx"
+            file_name = f"{file.stem}.xlsx"
             df.to_excel(
                 Path(
                     f"/Users/rajan/Desktop/personal-practice/etl/therapy-python-etl/input-files/output/claims/{file_name}"
                 ),
+                sheet_name="CLAIMS",
                 index=False,
             )
 
