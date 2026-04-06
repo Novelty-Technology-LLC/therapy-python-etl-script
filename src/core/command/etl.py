@@ -9,6 +9,9 @@ from src.core.migrate.script.eligibility_fix_product_and_patient_dob_patch impor
     EligibilityFixProductAndPatientDobPatch,
 )
 from src.core.migrate.script.patient_fix_subscriber_name import PatientFixSubscriberName
+from src.core.migrate.script.provider_claim_rpt_change_to_excel import (
+    ProviderClaimRptChangeToExcel,
+)
 
 
 class ETLCommand:
@@ -43,6 +46,12 @@ class ETLCommand:
 
             case "RECEIPT_DETAIL_NOTE":
                 with ReceiptDetailNote_Etl(Path("input-files/receipt_detail")) as etl:
+                    etl.execute()
+
+            case "PROVIDER_CLAIM_RPT_CHANGE_TO_EXCEL":
+                with ProviderClaimRptChangeToExcel(
+                    Path("input-files/claim_rpt")
+                ) as etl:
                     etl.execute()
 
             case _:

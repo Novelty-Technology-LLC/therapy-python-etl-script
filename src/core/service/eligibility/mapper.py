@@ -90,7 +90,7 @@ class EligibilityMapper:
                 "middleName": get_obj_value(patient, "demographic", "middleName"),
                 "lastName": get_obj_value(patient, "demographic", "lastName"),
                 "dob": to_datetime(get_obj_value(patient, "demographic", "dob")),
-                "formattedDob": get_obj_value(patient, "demographic", "dob"),
+                "formattedDob": get_obj_value(patient, "demographic", "formattedDob"),
                 "relationship": get_obj_value(patient, "relationship"),
                 "name": get_name(
                     {

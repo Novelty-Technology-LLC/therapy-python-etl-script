@@ -17,7 +17,8 @@ from src.core.command.etl import etl_command
             "PATIENT_FIX_SUBSCRIBER_NAME",
             "ELIGIBILITY_FIX_PRODUCT_AND_PATIENT_DOB_PATCH",
             "RECEIPT_DETAIL_NOTE",
-            # "TEST",
+            "PROVIDER_CLAIM_RPT_CHANGE_TO_EXCEL",
+            "TEST",
         ]
     ),
     help="ETL execute command",

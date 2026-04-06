@@ -17,7 +17,9 @@ class EligibilityFixProductAndPatientDobPatch(BaseEtl):
         self.batch_size = BATCH_SIZE
 
     def execute(self):
-        total_count = eligibilityModel.get_model().count_documents(filter={})
+        total_count = eligibilityModel.get_model().count_documents(
+            filter={"patient.formattedDob": {"$type": "date"}}
+        )
         total_batches = get_total_batch_count(total_count, self.batch_size)
         print(f"Total batches: {total_batches}")
 
@@ -32,7 +34,7 @@ class EligibilityFixProductAndPatientDobPatch(BaseEtl):
 
             eligibilitiesFromDb = list[ITherapyEligibility](
                 eligibilityModel.get_model().find(
-                    filter=query,
+                    filter={**query, "patient.formattedDob": {"$type": "date"}},
                     limit=self.batch_size,
                     sort=[("_id", ASCENDING)],
                     projection={

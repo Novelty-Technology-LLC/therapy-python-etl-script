@@ -648,6 +648,10 @@ class Eligibility_Etl_Migrate(BaseEtl):
             .to_dict("records")
         }
 
+        product_reference_ids = (
+            eligibility_df[["PRODUCT_ID"]].drop_duplicates().tolist()
+        )
+
         inserted_eligibilities = []
         updated_eligibilities = []
 
