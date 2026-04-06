@@ -21,7 +21,7 @@ from src.shared.utils.rpt import get_colspecs_from_rpt
 class ProviderClaimRptChangeToExcel(BaseEtl):
     def __init__(self, input_file_path: Path):
         super().__init__()
-        self.batch_size = 1000
+        self.batch_size = 15000
         self.input_file_path = input_file_path
 
     def execute(self):
@@ -38,7 +38,7 @@ class ProviderClaimRptChangeToExcel(BaseEtl):
             df = pd.read_fwf(
                 file,
                 skiprows=[1],
-                # infer_nrows=self.batch_size,
+                infer_nrows=self.batch_size,
                 chunksize=self.batch_size,
                 colspecs=get_colspecs_from_rpt(file),
                 # dtype=PROVIDER_CLAIM_DATA_FRAME_TYPE,
@@ -47,22 +47,19 @@ class ProviderClaimRptChangeToExcel(BaseEtl):
                 f"=========== [END] Reading file at {format_duration(time.perf_counter() - file_read_start)} ==========="
             )
 
-            for i, chunk in enumerate(df):
-                print(f"=========== [START] Processing chunk {i + 1} ===========")
-                chunk_process_start = time.perf_counter()
-                file_name = f"{timeStamp(datetime.now())}_provider_claim_{i+1}.xlsx"
-                chunk = chunk.fillna("NULL")
-
-                chunk.to_excel(
-                    Path(
-                        f"/Users/rajan/Desktop/personal-practice/etl/therapy-python-etl/input-files/output/claims/{file_name}"
-                    ),
-                    index=False,
-                )
-                print(
-                    f"=========== [END] Processing chunk {i + 1} at {format_duration(time.perf_counter() - chunk_process_start)} ==========="
-                )
+            convert_process_start = time.perf_counter()
+            file_name = f"{timeStamp(datetime.now())}_{file.stem}.xlsx"
+            df.to_excel(
+                Path(
+                    f"/Users/rajan/Desktop/personal-practice/etl/therapy-python-etl/input-files/output/claims/{file_name}"
+                ),
+                index=False,
+            )
 
             print(
-                f"=========== [END] Processing file: {file.name} at {format_duration(time.perf_counter() - start)} ==========="
+                f"=========== [END] Converting file to excel at {format_duration(time.perf_counter() - convert_process_start)} ==========="
+            )
+
+            print(
+                f"=========== [END] Completed Processing file: {file.name} at {format_duration(time.perf_counter() - start)} ==========="
             )
