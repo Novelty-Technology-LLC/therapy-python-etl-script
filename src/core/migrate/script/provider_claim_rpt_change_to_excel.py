@@ -23,6 +23,7 @@ class ProviderClaimRptChangeToExcel(BaseEtl):
         super().__init__()
         self.batch_size = 15000
         self.input_file_path = input_file_path
+        self.output_file_path = '/home/nvt-l-046/Desktop/therapy/therapy-python-etl-script/input-files/output/claims/'
 
     def execute(self):
         all_files = get_input_files_path(
@@ -49,7 +50,7 @@ class ProviderClaimRptChangeToExcel(BaseEtl):
             file_name = f"{file.stem}.xlsx"
             df.to_excel(
                 Path(
-                    f"/Users/rajan/Desktop/personal-practice/etl/therapy-python-etl/input-files/output/claims/{file_name}"
+                    f"{self.output_file_path}{file_name}"
                 ),
                 sheet_name="CLAIMS",
                 index=False,
