@@ -1,6 +1,7 @@
 from src.core.service.eligibility.entity import IArdbEligibility, ITherapyEligibility
 from src.core.service.enrollees.entity import ITherapyEnrollee
 from src.core.service.patients.entity import ITherapyPatient
+from src.core.service.products.entity import ITherapyProduct
 from src.core.service.subscribers.entity import ITherapySubscriber
 from src.shared.interface.etl.migration import FileMetadata
 from src.shared.utils.date import to_datetime
@@ -40,6 +41,7 @@ class EligibilityMapper:
         enrollee: ITherapyEnrollee,
         subscriber: ITherapySubscriber,
         patient: ITherapyPatient,
+        product: ITherapyProduct,
         file_metadata: FileMetadata,
     ) -> ITherapyEligibility:
         subscriber_name = get_name(
@@ -71,6 +73,7 @@ class EligibilityMapper:
             },
             "product": {
                 "referenceId": get_obj_value(eligibility, "PRODUCT_ID"),
+                "name": get_obj_value(product, "name"),
             },
             "serviceDate": {
                 "startDate": to_datetime(get_obj_value(eligibility, "EFFECTIVE_DATE")),

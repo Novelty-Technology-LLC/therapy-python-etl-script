@@ -31,6 +31,8 @@ from src.core.service.enrollees.model import enrolleesModel
 from src.core.service.patients.entity import ITherapyPatient
 from src.core.service.patients.mapper import patient_mapper
 from src.core.service.patients.model import patientsModel
+from src.core.service.products.entity import ITherapyProduct
+from src.core.service.products.model import productsModel
 from src.core.service.subscribers.entity import ITherapySubscriber
 from src.core.service.subscribers.mapper import subscriber_mapper
 from src.core.service.subscribers.model import subscribersModel
@@ -648,9 +650,7 @@ class Eligibility_Etl_Migrate(BaseEtl):
             .to_dict("records")
         }
 
-        product_reference_ids = (
-            eligibility_df[["PRODUCT_ID"]].drop_duplicates().tolist()
-        )
+        product_reference_ids = eligibility_df["PRODUCT_ID"].drop_duplicates().tolist()
 
         inserted_eligibilities = []
         updated_eligibilities = []
@@ -667,6 +667,17 @@ class Eligibility_Etl_Migrate(BaseEtl):
         )
         eligibility_from_db = list[ITherapyEligibility](
             eligibilityModel.get_model().find(eligibility_query)
+        )
+
+        products_from_db = (
+            list[ITherapyProduct](
+                productsModel.get_model().find(
+                    filter={"product.referenceId": {"$in": product_reference_ids}},
+                    projection={"_id": 1, "name": 1, "product": {"referenceId": 1}},
+                )
+            )
+            if product_reference_ids
+            else []
         )
 
         for eligibility_row in eligibility_df.itertuples(index=True):
@@ -690,6 +701,15 @@ class Eligibility_Etl_Migrate(BaseEtl):
             therapy_subscriber_from_db = None
             therapy_patient_from_db = None
             therapy_eligibility_from_db = None
+            therapy_product_from_db: Optional[ITherapyProduct] = None
+
+            for product in products_from_db:
+                if (
+                    get_obj_value(product, "product", "referenceId")
+                    == eligibility_product_id
+                ):
+                    therapy_product_from_db = product
+                    break
 
             for enrollee in enrollees_from_db:
                 if enrollee["referenceId"] == eligibility_enrollee_id:
@@ -756,6 +776,7 @@ class Eligibility_Etl_Migrate(BaseEtl):
                     therapy_enrollee_from_db,
                     therapy_subscriber_from_db,
                     therapy_patient_from_db,
+                    therapy_product_from_db,
                     file_metadata,
                 )
 
@@ -785,6 +806,7 @@ class Eligibility_Etl_Migrate(BaseEtl):
                         therapy_enrollee_from_db,
                         therapy_subscriber_from_db,
                         therapy_patient_from_db,
+                        therapy_product_from_db,
                         file_metadata,
                     )
                     updated_eligibilities.append(eligibility_to_therapy)
