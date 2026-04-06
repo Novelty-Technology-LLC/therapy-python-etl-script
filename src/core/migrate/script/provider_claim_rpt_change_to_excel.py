@@ -38,11 +38,9 @@ class ProviderClaimRptChangeToExcel(BaseEtl):
             df = pd.read_fwf(
                 file,
                 skiprows=[1],
-                infer_nrows=self.batch_size,
-                chunksize=self.batch_size,
                 colspecs=get_colspecs_from_rpt(file),
-                # dtype=PROVIDER_CLAIM_DATA_FRAME_TYPE,
             )
+            df = df.fillna("NULL")
             print(
                 f"=========== [END] Reading file at {format_duration(time.perf_counter() - file_read_start)} ==========="
             )
