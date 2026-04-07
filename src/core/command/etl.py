@@ -50,7 +50,8 @@ class ETLCommand:
 
             case "PROVIDER_CLAIM_RPT_CHANGE_TO_EXCEL":
                 with ProviderClaimRptChangeToExcel(
-                    Path("input-files/claim_rpt")
+                    input_file_path=Path("input-files/claim_rpt/"),
+                    output_file_path="/Users/rajan/Desktop/personal-practice/etl/therapy-python-etl/input-files/output/claims/",
                 ) as etl:
                     etl.execute()
 
