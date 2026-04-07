@@ -8,6 +8,10 @@ from src.core.migrate.receipt_detail_note.etl import ReceiptDetailNote_Etl
 from src.core.migrate.script.eligibility_fix_product_and_patient_dob_patch import (
     EligibilityFixProductAndPatientDobPatch,
 )
+
+from src.core.migrate.script.invoice_billing_map_enrollee_subscriber_patient import (
+    InvoiceBillingMapEnrolleeSubscriberPatientPatch,
+)
 from src.core.migrate.script.patient_fix_subscriber_name import PatientFixSubscriberName
 from src.core.migrate.script.provider_claim_rpt_change_to_excel import (
     ProviderClaimRptChangeToExcel,
@@ -53,6 +57,10 @@ class ETLCommand:
                     input_file_path=Path("input-files/claim_rpt/"),
                     output_file_path="/Users/rajan/Desktop/personal-practice/etl/therapy-python-etl/input-files/output/claims/",
                 ) as etl:
+                    etl.execute()
+
+            case "INVOICE_BILLING_MAP_ENROLLEE_SUBSCRIBER_PATIENT":
+                with InvoiceBillingMapEnrolleeSubscriberPatientPatch() as etl:
                     etl.execute()
 
             case _:

@@ -29,3 +29,6 @@ class CollectionName:
     RECEIPT_DETAILS = "receiptDetails"
     INVOICE_BILLINGS = "invoiceBillings"
     INVOICE_BILLING_DETAILS = "invoiceBillingDetails"
+    INVOICE_PAYMENT_RECEIPTS = "invoicePaymentReceipts"
+
+    ARDB_DUMP_INVOICE_BILLINGS = "ARDB_BILLING"

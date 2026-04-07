@@ -1,3 +1,4 @@
+from typing import TypedDict
 from pymongo import ASCENDING
 from pymongo.operations import UpdateOne
 from src.core.migrate.base_etl import BaseEtl
