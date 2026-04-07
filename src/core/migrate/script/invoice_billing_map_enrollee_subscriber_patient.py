@@ -34,6 +34,8 @@ class InvoiceBillingMapEnrolleeSubscriberPatientPatch(BaseEtl):
         etl_start_time = time.perf_counter()
         total_count = invoiceBillingsModel.get_model().count_documents(filter={})
         total_batches = get_total_batch_count(total_count, self.batch_size)
+        print(f"📦 Batch Size: {self.batch_size}")
+        print(f"📋 Total Invoice Billings: {total_count}")
         print(f"📦 Total batches: {total_batches}")
 
         last_visited_batch_id = None
