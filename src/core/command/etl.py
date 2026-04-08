@@ -5,6 +5,9 @@ from src.core.migrate.claim_rpt.etl import Claim_Rpt_Etl
 from src.core.migrate.excel.eligibility.eligibility import Eligibility_Etl_Migrate
 from src.core.migrate.provider_claim import Provider_Claim_Etl
 from src.core.migrate.receipt_detail_note.etl import ReceiptDetailNote_Etl
+from src.core.migrate.script.eligibility_copy_data_to_therapy_collection import (
+    EligibilityCopyDataToTherapyCollectionPatch,
+)
 from src.core.migrate.script.eligibility_fix_product_and_patient_dob_patch import (
     EligibilityFixProductAndPatientDobPatch,
 )
@@ -61,6 +64,10 @@ class ETLCommand:
 
             case "INVOICE_BILLING_MAP_ENROLLEE_SUBSCRIBER_PATIENT":
                 with InvoiceBillingMapEnrolleeSubscriberPatientPatch() as etl:
+                    etl.execute()
+
+            case "ELIGIBILITY_COPY_DATA_TO_THERAPY_COLLECTION":
+                with EligibilityCopyDataToTherapyCollectionPatch() as etl:
                     etl.execute()
 
             case _:

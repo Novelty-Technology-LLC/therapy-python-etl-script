@@ -407,7 +407,7 @@ class InvoiceBillingMapEnrolleeSubscriberPatientPatch(BaseEtl):
                 if update_subscriber or update_patient:
                     update_receipt_details_operations.append(
                         UpdateMany(
-                            {"invoiceNumber": invoice_billing_number},
+                            {"invoiceBillingNumber": invoice_billing_number},
                             {
                                 "$set": {
                                     **(

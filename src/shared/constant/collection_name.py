@@ -32,3 +32,8 @@ class CollectionName:
     INVOICE_PAYMENT_RECEIPTS = "invoicePaymentReceipts"
 
     ARDB_DUMP_INVOICE_BILLINGS = "ARDB_BILLING"
+
+    THERAPY_ENROLLEE = "enrollees"
+    THERAPY_PATIENT = "patients"
+    THERAPY_SUBSCRIBER = "subscribers"
+    THERAPY_ELIGIBILITY = "eligibilities"
