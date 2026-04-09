@@ -3,6 +3,12 @@ from pathlib import Path
 from src.core.migrate.claim_rpt.claim_excel import Claim_Excel_Etl
 from src.core.migrate.claim_rpt.etl import Claim_Rpt_Etl
 from src.core.migrate.excel.eligibility.eligibility import Eligibility_Etl_Migrate
+from src.core.migrate.invoice_billing_note.invoice_billing_detail_note import (
+    InvoiceBillingDetailNote_Etl,
+)
+from src.core.migrate.invoice_billing_note.invoice_billing_note import (
+    InvoiceBillingNote_Etl,
+)
 from src.core.migrate.provider_claim import Provider_Claim_Etl
 from src.core.migrate.receipt_detail_note.etl import ReceiptDetailNote_Etl
 from src.core.migrate.script.eligibility_copy_data_to_therapy_collection import (
@@ -68,6 +74,14 @@ class ETLCommand:
 
             case "ELIGIBILITY_COPY_DATA_TO_THERAPY_COLLECTION":
                 with EligibilityCopyDataToTherapyCollectionPatch() as etl:
+                    etl.execute()
+
+            case "INVOICE_BILLING_NOTE":
+                with InvoiceBillingNote_Etl(Path("input-files/notes/")) as etl:
+                    etl.execute()
+
+            case "INVOICE_BILLING_DETAIL_NOTE":
+                with InvoiceBillingDetailNote_Etl(Path("input-files/notes/")) as etl:
                     etl.execute()
 
             case _:

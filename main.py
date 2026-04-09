@@ -7,7 +7,7 @@ from src.core.command.etl import etl_command
 @click.option(
     "-exec",
     "--execute",
-    default="ELIGIBILITY_COPY_DATA_TO_THERAPY_COLLECTION",
+    default="INVOICE_BILLING_DETAIL_NOTE",
     type=click.Choice(
         [
             "ALL",
@@ -17,6 +17,8 @@ from src.core.command.etl import etl_command
             "PATIENT_FIX_SUBSCRIBER_NAME",
             "ELIGIBILITY_FIX_PRODUCT_AND_PATIENT_DOB_PATCH",
             "RECEIPT_DETAIL_NOTE",
+            "INVOICE_BILLING_NOTE",
+            "INVOICE_BILLING_DETAIL_NOTE",
             "PROVIDER_CLAIM_RPT_CHANGE_TO_EXCEL",
             "INVOICE_BILLING_MAP_ENROLLEE_SUBSCRIBER_PATIENT",
             "ELIGIBILITY_COPY_DATA_TO_THERAPY_COLLECTION",

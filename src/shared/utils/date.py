@@ -23,3 +23,11 @@ def timeStamp(date: datetime | None = None) -> int:
     return (
         int(date.timestamp() * 1000) if date else int(datetime.now().timestamp() * 1000)
     )
+
+
+def to_formatted_date(date: datetime | None = None) -> str:
+    return date.strftime("%m/%d/%Y") if date else None
+
+
+def from_string_to_formatted_date(date: str | None = None) -> str:
+    return to_formatted_date(to_datetime(date)) if date else None

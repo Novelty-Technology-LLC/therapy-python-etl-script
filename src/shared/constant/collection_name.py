@@ -23,7 +23,7 @@ class CollectionName:
 
     PRODUCTS = "products"
 
-    THERAPY_NOTES = "PYTHON_TEST_THERAPY_NOTES"
+    THERAPY_NOTES = "PYTHON_TEST_THERAPY_NOTES1"
 
     RECEIPTS = "receipts"
     RECEIPT_DETAILS = "receiptDetails"
