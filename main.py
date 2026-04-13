@@ -22,6 +22,7 @@ from src.core.command.etl import etl_command
             "PROVIDER_CLAIM_RPT_CHANGE_TO_EXCEL",
             "INVOICE_BILLING_MAP_ENROLLEE_SUBSCRIBER_PATIENT",
             "ELIGIBILITY_COPY_DATA_TO_THERAPY_COLLECTION",
+            "UPDATE_FORMATTED_DATES",
             "TEST",
         ]
     ),

@@ -71,6 +71,7 @@ class ITherapyEnrolleeAdditionalInformation(TypedDict, total=False):
     weight: ITherapyEnrolleeAdditionalInformationWeight
 
     deathDate: Optional[date]
+    formattedDeathDate: Optional[str]
 
 
 class ITherapyEnrolleeCommunicationPreference(TypedDict, total=False):

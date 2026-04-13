@@ -25,6 +25,9 @@ from src.core.migrate.script.patient_fix_subscriber_name import PatientFixSubscr
 from src.core.migrate.script.provider_claim_rpt_change_to_excel import (
     ProviderClaimRptChangeToExcel,
 )
+from src.core.migrate.script.update_formatted_dates_patch import (
+    UpdateFormattedDatesPatch,
+)
 
 
 class ETLCommand:
@@ -82,6 +85,10 @@ class ETLCommand:
 
             case "INVOICE_BILLING_DETAIL_NOTE":
                 with InvoiceBillingDetailNote_Etl(Path("input-files/notes/")) as etl:
+                    etl.execute()
+
+            case "UPDATE_FORMATTED_DATES":
+                with UpdateFormattedDatesPatch() as etl:
                     etl.execute()
 
             case _:

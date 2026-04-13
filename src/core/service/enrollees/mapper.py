@@ -1,6 +1,6 @@
 from src.core.service.enrollees.entity import IArdbEnrollee, ITherapyEnrollee
 from src.shared.interface.etl.migration import FileMetadata
-from src.shared.utils.date import to_datetime
+from src.shared.utils.date import from_string_to_formatted_date, to_datetime
 from src.shared.utils.gender import to_ardb_gender, to_therapy_gender
 from src.shared.utils.migration import generate_file_metadata
 from src.shared.utils.obj import get_obj_value
@@ -85,6 +85,7 @@ class EnrolleeMapper:
         """Convert the enrollee ardb to therapy format"""
 
         enrollee_dob = get_obj_value(enrollee, "DOB")
+        death_date = get_obj_value(enrollee, "DEATH_DATE")
 
         return {
             "_id": get_obj_value(enrollee, "_id"),
@@ -103,7 +104,7 @@ class EnrolleeMapper:
                 "lastName": get_obj_value(enrollee, "LAST_NAME"),
                 "gender": to_therapy_gender(get_obj_value(enrollee, "GENDER")),
                 "dob": to_datetime(enrollee_dob),
-                "formattedDob": enrollee_dob,
+                "formattedDob": from_string_to_formatted_date(enrollee_dob),
                 "email": get_obj_value(enrollee, "EMAIL"),
                 "phone": get_obj_value(enrollee, "PHONE_NUMBER"),
                 "address": {
@@ -123,7 +124,8 @@ class EnrolleeMapper:
                 "countyId": get_obj_value(enrollee, "COUNTY_ID"),
                 "addressCode": get_obj_value(enrollee, "ADDRESS_CODE"),
                 "birthSequence": get_obj_value(enrollee, "BIRTH_SEQUENCE"),
-                "deathDate": get_obj_value(enrollee, "DEATH_DATE"),
+                "deathDate": to_datetime(death_date),
+                "formattedDeathDate": from_string_to_formatted_date(death_date),
                 "ethnicityCode": get_obj_value(enrollee, "ETHNICITY_CODE"),
                 "raceEthnicityCode": get_obj_value(enrollee, "RACE_ETHNICITY_CODE"),
                 "citizenshipStatusCode": get_obj_value(

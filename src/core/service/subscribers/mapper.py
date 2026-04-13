@@ -1,7 +1,7 @@
 from src.core.service.enrollees.entity import ITherapyEnrollee
 from src.core.service.subscribers.entity import IArdbSubscriber, ITherapySubscriber
 from src.shared.interface.etl.migration import FileMetadata
-from src.shared.utils.date import to_datetime
+from src.shared.utils.date import from_string_to_formatted_date, to_datetime
 from src.shared.utils.gender import to_ardb_gender, to_therapy_gender
 from src.shared.utils.migration import generate_file_metadata
 from src.shared.utils.obj import get_obj_value
@@ -96,16 +96,16 @@ class SubscriberMapper:
             "employment": {
                 "status": get_obj_value(subscriber, "EMPLOYMENT_STATUS"),
                 "startDate": to_datetime(effective_date),
-                "formattedStartDate": effective_date,
+                "formattedStartDate": from_string_to_formatted_date(effective_date),
                 "endDate": to_datetime(termination_date),
-                "formattedTerminationDate": termination_date,
+                "formattedTerminationDate": from_string_to_formatted_date(termination_date),
             },
             "demographic": {
                 "lastName": get_obj_value(subscriber, "LAST_NAME"),
                 "firstName": get_obj_value(subscriber, "FIRST_NAME"),
                 "middleName": get_obj_value(subscriber, "MIDDLE_NAME"),
                 "dob": to_datetime(enrollee_dob),
-                "formattedDob": enrollee_dob,
+                "formattedDob": from_string_to_formatted_date(enrollee_dob),
                 "gender": to_therapy_gender(get_obj_value(subscriber, "GENDER")),
                 "email": get_obj_value(subscriber, "EMAIL"),
                 "phone": get_obj_value(subscriber, "PHONE_NUMBER"),
@@ -177,16 +177,16 @@ class SubscriberMapper:
             "employment": {
                 "status": get_obj_value(subscriber, "EMPLOYMENT_STATUS"),
                 "startDate": to_datetime(effective_date),
-                "formattedStartDate": effective_date,
+                "formattedStartDate": from_string_to_formatted_date(effective_date),
                 "endDate": to_datetime(termination_date),
-                "formattedTerminationDate": termination_date,
+                "formattedTerminationDate": from_string_to_formatted_date(termination_date),
             },
             "demographic": {
                 "lastName": get_obj_value(enrollee, "demographic", "lastName"),
                 "firstName": get_obj_value(enrollee, "demographic", "firstName"),
                 "middleName": get_obj_value(enrollee, "demographic", "middleName"),
                 "dob": to_datetime(enrollee_dob),
-                "formattedDob": get_obj_value(enrollee, "demographic", "formattedDob"),
+                "formattedDob": from_string_to_formatted_date(enrollee_dob),
                 "gender": get_obj_value(enrollee, "demographic", "gender"),
                 "email": get_obj_value(enrollee, "demographic", "email"),
                 "phone": get_obj_value(enrollee, "demographic", "phone"),
