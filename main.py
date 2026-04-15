@@ -24,6 +24,7 @@ from src.core.command.etl import etl_command
             "ELIGIBILITY_COPY_DATA_TO_THERAPY_COLLECTION",
             "UPDATE_FORMATTED_DATES",
             "ELIGIBILITY_MAP_MISSING_ENROLLEE_PATIENT_SUBSCRIBER_AND_ELIGIBILITY_DATA_PATCH",
+            "DOCUMENT_MOVE_PYTHON_DOCUMENT_TO_THERAPY",
             "TEST",
         ]
     ),

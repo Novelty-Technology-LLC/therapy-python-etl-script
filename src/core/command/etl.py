@@ -11,6 +11,9 @@ from src.core.migrate.invoice_billing_note.invoice_billing_note import (
 )
 from src.core.migrate.provider_claim import Provider_Claim_Etl
 from src.core.migrate.receipt_detail_note.etl import ReceiptDetailNote_Etl
+from src.core.migrate.script.document_move_python_document_to_therapy import (
+    DocumentMovePythonDocumentToTherapy,
+)
 from src.core.migrate.script.eligibility_copy_data_to_therapy_collection import (
     EligibilityCopyDataToTherapyCollectionPatch,
 )
@@ -98,6 +101,10 @@ class ETLCommand:
                 with EligibilityMapMissingEnrolleePatientSubscriberAndEligibilityDataPatch(
                     Path("input-files/eligibility")
                 ) as etl:
+                    etl.execute()
+
+            case "DOCUMENT_MOVE_PYTHON_DOCUMENT_TO_THERAPY":
+                with DocumentMovePythonDocumentToTherapy() as etl:
                     etl.execute()
 
             case _:

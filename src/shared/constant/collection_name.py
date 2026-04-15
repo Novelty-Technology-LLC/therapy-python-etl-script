@@ -37,3 +37,5 @@ class CollectionName:
     THERAPY_PATIENT = "patients"
     THERAPY_SUBSCRIBER = "subscribers"
     THERAPY_ELIGIBILITY = "eligibilities"
+
+    THERAPY_DOCUMENTS = "documents"

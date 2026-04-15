@@ -65,6 +65,7 @@ class EligibilityMapMissingEnrolleePatientSubscriberAndEligibilityDataPatch(Base
         self.sheet_name = "ELIGIBILITY"
         self.enable_backup = False
         self.s3_module = "ardb-backup/eligibility"
+        self.etl_type = "ELIGIBILITY"
 
     def execute(self):
         all_files = get_input_files_path(
@@ -86,6 +87,7 @@ class EligibilityMapMissingEnrolleePatientSubscriberAndEligibilityDataPatch(Base
                     s3_module=self.s3_module,
                     file_type=InputFileType.EXCEL,
                     enable_backup=self.enable_backup,
+                    etl_type=self.etl_type,
                 )
 
                 if document_response is None:
