@@ -7,7 +7,7 @@ from src.core.command.etl import etl_command
 @click.option(
     "-exec",
     "--execute",
-    default="INVOICE_BILLING_DETAIL_NOTE",
+    default="ELIGIBILITY_MAP_MISSING_ENROLLEE_PATIENT_SUBSCRIBER_AND_ELIGIBILITY_DATA_PATCH",
     type=click.Choice(
         [
             "ALL",
@@ -22,6 +22,7 @@ from src.core.command.etl import etl_command
             "PROVIDER_CLAIM_RPT_CHANGE_TO_EXCEL",
             "INVOICE_BILLING_MAP_ENROLLEE_SUBSCRIBER_PATIENT",
             "ELIGIBILITY_COPY_DATA_TO_THERAPY_COLLECTION",
+            "ELIGIBILITY_MAP_MISSING_ENROLLEE_PATIENT_SUBSCRIBER_AND_ELIGIBILITY_DATA_PATCH",
             "TEST",
         ]
     ),

@@ -1,7 +1,7 @@
 from src.core.service.enrollees.entity import ITherapyEnrollee
 from src.core.service.subscribers.entity import IArdbSubscriber, ITherapySubscriber
 from src.shared.interface.etl.migration import FileMetadata
-from src.shared.utils.date import to_datetime
+from src.shared.utils.date import from_string_to_formatted_date, to_datetime
 from src.shared.utils.gender import to_ardb_gender, to_therapy_gender
 from src.shared.utils.migration import generate_file_metadata
 from src.shared.utils.obj import get_obj_value
@@ -177,9 +177,11 @@ class SubscriberMapper:
             "employment": {
                 "status": get_obj_value(subscriber, "EMPLOYMENT_STATUS"),
                 "startDate": to_datetime(effective_date),
-                "formattedStartDate": effective_date,
+                "formattedStartDate": from_string_to_formatted_date(effective_date),
                 "endDate": to_datetime(termination_date),
-                "formattedTerminationDate": termination_date,
+                "formattedTerminationDate": from_string_to_formatted_date(
+                    termination_date
+                ),
             },
             "demographic": {
                 "lastName": get_obj_value(enrollee, "demographic", "lastName"),
