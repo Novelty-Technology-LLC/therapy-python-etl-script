@@ -18,6 +18,9 @@ from src.core.migrate.script.eligibility_fix_product_and_patient_dob_patch impor
     EligibilityFixProductAndPatientDobPatch,
 )
 
+from src.core.migrate.script.eligibility_map_missing_enrollee_patient_subscriber_and_eligibility_data_patch import (
+    EligibilityMapMissingEnrolleePatientSubscriberAndEligibilityDataPatch,
+)
 from src.core.migrate.script.invoice_billing_map_enrollee_subscriber_patient import (
     InvoiceBillingMapEnrolleeSubscriberPatientPatch,
 )
@@ -89,6 +92,12 @@ class ETLCommand:
 
             case "UPDATE_FORMATTED_DATES":
                 with UpdateFormattedDatesPatch() as etl:
+                    etl.execute()
+
+            case "ELIGIBILITY_MAP_MISSING_ENROLLEE_PATIENT_SUBSCRIBER_AND_ELIGIBILITY_DATA_PATCH":
+                with EligibilityMapMissingEnrolleePatientSubscriberAndEligibilityDataPatch(
+                    Path("input-files/eligibility")
+                ) as etl:
                     etl.execute()
 
             case _:

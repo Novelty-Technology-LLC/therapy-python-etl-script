@@ -98,7 +98,9 @@ class SubscriberMapper:
                 "startDate": to_datetime(effective_date),
                 "formattedStartDate": from_string_to_formatted_date(effective_date),
                 "endDate": to_datetime(termination_date),
-                "formattedTerminationDate": from_string_to_formatted_date(termination_date),
+                "formattedTerminationDate": from_string_to_formatted_date(
+                    termination_date
+                ),
             },
             "demographic": {
                 "lastName": get_obj_value(subscriber, "LAST_NAME"),
@@ -179,7 +181,9 @@ class SubscriberMapper:
                 "startDate": to_datetime(effective_date),
                 "formattedStartDate": from_string_to_formatted_date(effective_date),
                 "endDate": to_datetime(termination_date),
-                "formattedTerminationDate": from_string_to_formatted_date(termination_date),
+                "formattedTerminationDate": from_string_to_formatted_date(
+                    termination_date
+                ),
             },
             "demographic": {
                 "lastName": get_obj_value(enrollee, "demographic", "lastName"),
