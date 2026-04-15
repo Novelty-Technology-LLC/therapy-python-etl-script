@@ -2,7 +2,7 @@ from src.core.service.enrollees.entity import ITherapyEnrollee
 from src.core.service.patients.entity import IArdbPatient, ITherapyPatient
 from src.core.service.subscribers.entity import ITherapySubscriber
 from src.shared.interface.etl.migration import FileMetadata
-from src.shared.utils.date import to_datetime
+from src.shared.utils.date import from_string_to_formatted_date, to_datetime
 from src.shared.utils.migration import generate_file_metadata
 from src.shared.utils.name import get_name
 from src.shared.utils.obj import get_obj_value
@@ -74,7 +74,7 @@ class PatientMapper:
                 "firstName": get_obj_value(enrollee, "demographic", "firstName"),
                 "middleName": get_obj_value(enrollee, "demographic", "middleName"),
                 "dob": to_datetime(get_obj_value(enrollee, "demographic", "dob")),
-                "formattedDob": get_obj_value(enrollee, "demographic", "formattedDob"),
+                "formattedDob": from_string_to_formatted_date(get_obj_value(enrollee, "demographic", "formattedDob")),
                 "gender": get_obj_value(enrollee, "demographic", "gender"),
                 "email": get_obj_value(enrollee, "demographic", "email"),
                 "phone": get_obj_value(enrollee, "demographic", "phone"),

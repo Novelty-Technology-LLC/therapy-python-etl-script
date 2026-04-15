@@ -85,6 +85,7 @@ class EnrolleeMapper:
         """Convert the enrollee ardb to therapy format"""
 
         enrollee_dob = get_obj_value(enrollee, "DOB")
+        death_date = get_obj_value(enrollee, "DEATH_DATE")
 
         return {
             "_id": get_obj_value(enrollee, "_id"),
@@ -123,7 +124,8 @@ class EnrolleeMapper:
                 "countyId": get_obj_value(enrollee, "COUNTY_ID"),
                 "addressCode": get_obj_value(enrollee, "ADDRESS_CODE"),
                 "birthSequence": get_obj_value(enrollee, "BIRTH_SEQUENCE"),
-                "deathDate": get_obj_value(enrollee, "DEATH_DATE"),
+                "deathDate": to_datetime(death_date),
+                "formattedDeathDate": from_string_to_formatted_date(death_date),
                 "ethnicityCode": get_obj_value(enrollee, "ETHNICITY_CODE"),
                 "raceEthnicityCode": get_obj_value(enrollee, "RACE_ETHNICITY_CODE"),
                 "citizenshipStatusCode": get_obj_value(

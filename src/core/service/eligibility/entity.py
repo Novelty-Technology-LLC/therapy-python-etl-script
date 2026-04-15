@@ -54,9 +54,10 @@ class IEligibilityAddReasonCode(TypedDict):
     eventDate: date
 
 
-class IEligibilityTerminationReasonCode(TypedDict):
+class IEligibilityTerminationReasonCode(TypedDict, total=False):
     code: str
     eventDate: date
+    formattedEventDate: Optional[str]
 
 
 class IEligibilityClient(TypedDict):
@@ -65,8 +66,9 @@ class IEligibilityClient(TypedDict):
     rateCode: str
 
 
-class IEligibilityPaidThrough(TypedDict):
+class IEligibilityPaidThrough(TypedDict, total=False):
     date: date
+    formattedDate: Optional[str]
     gracePeriod: int
 
 

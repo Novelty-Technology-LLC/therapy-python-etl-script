@@ -4,7 +4,7 @@ from src.core.service.patients.entity import ITherapyPatient
 from src.core.service.products.entity import ITherapyProduct
 from src.core.service.subscribers.entity import ITherapySubscriber
 from src.shared.interface.etl.migration import FileMetadata
-from src.shared.utils.date import to_datetime
+from src.shared.utils.date import from_string_to_formatted_date, to_datetime
 from src.shared.utils.migration import generate_file_metadata
 from src.shared.utils.name import get_name
 from src.shared.utils.obj import get_obj_value
@@ -52,6 +52,9 @@ class EligibilityMapper:
             }
         )
 
+        paid_through_raw = get_obj_value(eligibility, "PAID_THROUGH_DATE")
+        termination_event_raw = get_obj_value(eligibility, "TERMINATION_REASON_EVENT_DATE")
+
         return {
             "_id": get_obj_value(eligibility, "_id"),
             "hasCompleteInfo": get_obj_value(
@@ -77,9 +80,9 @@ class EligibilityMapper:
             },
             "serviceDate": {
                 "startDate": to_datetime(get_obj_value(eligibility, "EFFECTIVE_DATE")),
-                "formattedStartDate": get_obj_value(eligibility, "EFFECTIVE_DATE"),
+                "formattedStartDate": from_string_to_formatted_date(get_obj_value(eligibility, "EFFECTIVE_DATE")),
                 "endDate": to_datetime(get_obj_value(eligibility, "TERMINATION_DATE")),
-                "formattedEndDate": get_obj_value(eligibility, "TERMINATION_DATE"),
+                "formattedEndDate": from_string_to_formatted_date(get_obj_value(eligibility, "TERMINATION_DATE")),
             },
             "subscriber": {
                 "refId": get_obj_value(subscriber, "_id"),
@@ -93,7 +96,7 @@ class EligibilityMapper:
                 "middleName": get_obj_value(patient, "demographic", "middleName"),
                 "lastName": get_obj_value(patient, "demographic", "lastName"),
                 "dob": to_datetime(get_obj_value(patient, "demographic", "dob")),
-                "formattedDob": get_obj_value(patient, "demographic", "formattedDob"),
+                "formattedDob": from_string_to_formatted_date(get_obj_value(patient, "demographic", "formattedDob")),
                 "relationship": get_obj_value(patient, "relationship"),
                 "name": get_name(
                     {
@@ -121,17 +124,17 @@ class EligibilityMapper:
                 "domainSourceId": get_obj_value(eligibility, "EL_DOMAIN_SOURCE_ID"),
                 "isLateEnrollee": get_obj_value(eligibility, "LATE_ENROLLEE_FLAG"),
                 "paidThrough": {
-                    "date": to_datetime(
-                        get_obj_value(eligibility, "PAID_THROUGH_DATE")
-                    ),
+                    "date": to_datetime(paid_through_raw),
+                    "formattedDate": from_string_to_formatted_date(paid_through_raw),
                     "gracePeriod": get_obj_value(
                         eligibility, "PAID_THROUGH_GRACE_PERIOD"
                     ),
                 },
                 "terminationReason": {
                     "code": get_obj_value(eligibility, "TERMINATION_REASON_CODE"),
-                    "eventDate": to_datetime(
-                        get_obj_value(eligibility, "TERMINATION_REASON_EVENT_DATE")
+                    "eventDate": to_datetime(termination_event_raw),
+                    "formattedEventDate": from_string_to_formatted_date(
+                        termination_event_raw
                     ),
                 },
                 "waitingPeriodCredit": get_obj_value(
