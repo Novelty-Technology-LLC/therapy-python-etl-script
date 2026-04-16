@@ -1,5 +1,5 @@
 import time
-from typing import List, TypedDict
+from typing import Dict, List, TypedDict
 
 from pymongo import ASCENDING
 from src.core.migrate.base_etl import BaseEtl
@@ -46,6 +46,7 @@ class EligibilityCopyDataToTherapyCollectionPatch(BaseEtl):
                 "therapyModel": BaseModel(CollectionName.THERAPY_ELIGIBILITY),
             },
         ]
+        self.flush_data = False
 
     def execute(self):
         etl_start_time = time.perf_counter()
@@ -55,7 +56,10 @@ class EligibilityCopyDataToTherapyCollectionPatch(BaseEtl):
             name = modelCollections.get("name")
             print(f"🛢 Collection Model: {modelCollections.get('name')}")
 
-            therapyModel.get_model().delete_many({})
+            if self.flush_data:
+                print(f"🛠️ Flushing data from {name}")
+                therapyModel.get_model().delete_many({})
+
             total_count = pythonModel.get_model().count_documents(filter={})
             total_batches = get_total_batch_count(total_count, self.batch_size)
 
@@ -86,10 +90,44 @@ class EligibilityCopyDataToTherapyCollectionPatch(BaseEtl):
 
                 last_visited_batch_id = data_from_python_model[-1]["_id"]
 
-                print(
-                    f"🔄 Total {name} inserting for Batch {batch_num + 1}: {len(data_from_python_model)}"
+                collect_python_data_ids_set = set[str]()
+                for data in data_from_python_model:
+                    if data.get("_id"):
+                        collect_python_data_ids_set.add(data.get("_id"))
+
+                therapy_data_from_db = list(
+                    therapyModel.get_model().find(
+                        filter={"_id": {"$in": list(collect_python_data_ids_set)}},
+                        projection={"_id": 1},
+                    )
                 )
-                therapyModel.get_model().insert_many(data_from_python_model)
+
+                # O(1) access therapy data
+                # therapy_data_by_id: Dict[str, dict] = {
+                #     data["_id"]: data
+                #     for data in therapy_data_from_db
+                #     if data.get("_id")
+                # }
+                therapy_data_by_id_set = set[str]()
+                for therapy_data in therapy_data_from_db:
+                    if therapy_data.get("_id"):
+                        therapy_data_by_id_set.add(therapy_data.get("_id"))
+
+                collect_inserted_therapy_data = list[dict]()
+                for data in data_from_python_model:
+                    data_id = data.get("_id")
+                    if data_id is None:
+                        continue
+
+                    if data_id not in therapy_data_by_id_set:
+                        collect_inserted_therapy_data.append(data)
+
+                if collect_inserted_therapy_data:
+                    print(
+                        f"🔄 Total {name} inserting for Batch {batch_num + 1}: {len(data_from_python_model)}"
+                    )
+                    therapyModel.get_model().insert_many(data_from_python_model)
+
                 print(
                     f"✅ Batch {batch_num + 1} completed in {format_duration(time.perf_counter() - batch_start_time)}"
                 )

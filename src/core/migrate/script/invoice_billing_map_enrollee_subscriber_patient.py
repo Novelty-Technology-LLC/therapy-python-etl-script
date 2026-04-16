@@ -31,8 +31,26 @@ class InvoiceBillingMapEnrolleeSubscriberPatientPatch(BaseEtl):
         self.batch_size = BATCH_SIZE
 
     def execute(self):
+        print("🔄 Invoice Billing Map Enrollee Subscriber Patient Patch")
         etl_start_time = time.perf_counter()
-        total_count = invoiceBillingsModel.get_model().count_documents(filter={})
+        count_query = [
+            {"$match": {"enrollee.refId": {"$exists": True}}},
+            {
+                "$lookup": {
+                    "from": "PYTHON_TEST_ENROLLEE",
+                    "localField": "enrollee.refId",
+                    "foreignField": "_id",
+                    "as": "enrollees",
+                    "pipeline": [{"$project": {"_id": 1, "references": 1}}],
+                }
+            },
+            {"$match": {"$expr": {"$eq": [{"$size": "$enrollees"}, 0]}}},
+            {"$project": {"_id": 1, "enrollee": 1, "enrollees": 1}},
+            {"$count": "count"},
+        ]
+        # total_count = invoiceBillingsModel.get_model().count_documents(filter={})
+        total_count = list(invoiceBillingsModel.get_model().aggregate(count_query))
+        total_count = total_count[0].get("count") if total_count else 0
         total_batches = get_total_batch_count(total_count, self.batch_size)
         print(f"📦 Batch Size: {self.batch_size}")
         print(f"📋 Total Invoice Billings: {total_count}")
@@ -48,16 +66,36 @@ class InvoiceBillingMapEnrolleeSubscriberPatientPatch(BaseEtl):
                 {"_id": {"$gt": last_visited_batch_id}} if last_visited_batch_id else {}
             )
 
-            invoice_billings_from_db = list(
-                invoiceBillingsModel.get_model().find(
-                    filter=query,
-                    limit=self.batch_size,
-                    sort=[("_id", ASCENDING)],
-                    projection={
+            base_query = [
+                {"$match": {**query, "enrollee.refId": {"$exists": True}}},
+                {
+                    "$lookup": {
+                        "from": "PYTHON_TEST_ENROLLEE",
+                        "localField": "enrollee.redId",
+                        "foreignField": "_id",
+                        "as": "enrollees",
+                        "pipeline": [{"$project": {"_id": 1, "references": 1}}],
+                    }
+                },
+                {"$match": {"$expr": {"$eq": [{"$size": "$enrollees"}, 0]}}},
+                {
+                    "$project": {
                         "_id": 1,
                         "invoiceBillingNumber": 1,
-                    },
-                )
+                    }
+                },
+                {
+                    "$limit": self.batch_size,
+                },
+                {
+                    "$sort": {
+                        "_id": ASCENDING,
+                    }
+                },
+            ]
+
+            invoice_billings_from_db = list(
+                invoiceBillingsModel.get_model().aggregate(pipeline=base_query)
             )
 
             if len(invoice_billings_from_db) <= 0:
@@ -77,16 +115,26 @@ class InvoiceBillingMapEnrolleeSubscriberPatientPatch(BaseEtl):
             ardb_dump_invoice_billings_from_db = (
                 list[IArdbDumpInvoiceBilling](
                     ardbDumpInvoiceBillingsModel.get_model().find(
+                        # filter={
+                        #     "INVOICE_BILLING_ID": {"$in": list(invoice_billing_numbers)}
+                        # },
                         filter={
-                            "INVOICE_BILLING_ID": {"$in": list(invoice_billing_numbers)}
+                            "$expr": {
+                                "$in": [
+                                    {"$toString": "$INVOICE_BILLING_ID"},
+                                    list(invoice_billing_numbers),
+                                ]
+                            }
                         },
                         projection={
                             "_id": 1,
-                            "INVOICE_BILLING_ID": 1,
-                            "ENROLLEE_ID": 1,
-                            "INSURED_ENROLLEE_ID": 1,
-                            "SUBSCRIBER_ID": 1,
-                            "MEMBER_ID": 1,
+                            "INVOICE_BILLING_ID": {"$toString": "$INVOICE_BILLING_ID"},
+                            "ENROLLEE_ID": {"$toString": "$ENROLLEE_ID"},
+                            "INSURED_ENROLLEE_ID": {
+                                "$toString": "$INSURED_ENROLLEE_ID"
+                            },
+                            "SUBSCRIBER_ID": {"$toString": "$SUBSCRIBER_ID"},
+                            "MEMBER_ID": {"$toString": "$MEMBER_ID"},
                         },
                     )
                 )

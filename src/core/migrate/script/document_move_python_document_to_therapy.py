@@ -57,7 +57,41 @@ class DocumentMovePythonDocumentToTherapy(BaseEtl):
 
             last_visited_batch_id = documentsFromDb[-1]["_id"]
 
-            self.therapy_documents_model.insert_many(documentsFromDb)
+            # therapy_documents_from_db = list
+            documents_id_set = set[str]()
+            for document in documentsFromDb:
+                document_id = document.get("_id")
+                if document_id:
+                    documents_id_set.add(document_id)
+
+            therapy_documents_from_db = list(
+                self.therapy_documents_model.get_model().find(
+                    filter={"_id": {"$in": list(documents_id_set)}},
+                    projection={"_id": 1},
+                )
+            )
+
+            collect_inserted_therapy_documents = list[dict]()
+
+            for document in documentsFromDb:
+                document_id = document.get("_id")
+
+                therapy_document = next(
+                    (
+                        therapy_doc
+                        for therapy_doc in therapy_documents_from_db
+                        if therapy_doc.get("_id") == document_id
+                    ),
+                    None,
+                )
+
+                if therapy_document is None:
+                    collect_inserted_therapy_documents.append(document)
+
+            if collect_inserted_therapy_documents:
+                self.therapy_documents_model.get_model().insert_many(
+                    collect_inserted_therapy_documents
+                )
 
             print(
                 f"✅ Batch {batch_num + 1} completed in {format_duration(time.perf_counter() - batch_start_time)}"

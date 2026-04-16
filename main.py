@@ -7,7 +7,7 @@ from src.core.command.etl import etl_command
 @click.option(
     "-exec",
     "--execute",
-    default="ELIGIBILITY_MAP_MISSING_ENROLLEE_PATIENT_SUBSCRIBER_AND_ELIGIBILITY_DATA_PATCH",
+    default="INVOICE_BILLING_MAP_ENROLLEE_SUBSCRIBER_PATIENT",
     type=click.Choice(
         [
             "ALL",
