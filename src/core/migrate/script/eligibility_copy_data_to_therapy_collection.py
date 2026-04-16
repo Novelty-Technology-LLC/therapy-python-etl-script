@@ -124,9 +124,9 @@ class EligibilityCopyDataToTherapyCollectionPatch(BaseEtl):
 
                 if collect_inserted_therapy_data:
                     print(
-                        f"🔄 Total {name} inserting for Batch {batch_num + 1}: {len(data_from_python_model)}"
+                        f"🔄 Total {name} inserting for Batch {batch_num + 1}: {len(collect_inserted_therapy_data)}"
                     )
-                    therapyModel.get_model().insert_many(data_from_python_model)
+                    therapyModel.get_model().insert_many(collect_inserted_therapy_data)
 
                 print(
                     f"✅ Batch {batch_num + 1} completed in {format_duration(time.perf_counter() - batch_start_time)}"
