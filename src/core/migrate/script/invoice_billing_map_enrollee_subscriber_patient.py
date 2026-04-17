@@ -29,23 +29,33 @@ class InvoiceBillingMapEnrolleeSubscriberPatientPatch(BaseEtl):
     def __init__(self):
         super().__init__()
         self.batch_size = BATCH_SIZE
+        self.last_visited_batch_id = "0194bbc8-0eb9-7169-b121-afc8bcc9e340"
 
     def execute(self):
         print("🔄 Invoice Billing Map Enrollee Subscriber Patient Patch")
         etl_start_time = time.perf_counter()
         count_query = [
-            {"$match": {"enrollee.refId": {"$exists": True}}},
             {
-                "$lookup": {
-                    "from": "PYTHON_TEST_ENROLLEE",
-                    "localField": "enrollee.refId",
-                    "foreignField": "_id",
-                    "as": "enrollees",
-                    "pipeline": [{"$project": {"_id": 1, "references": 1}}],
+                "$match": {
+                    **(
+                        {"_id": {"$gt": self.last_visited_batch_id}}
+                        if self.last_visited_batch_id
+                        else {}
+                    ),
+                    "enrollee.refId": {"$exists": True},
                 }
             },
-            {"$match": {"$expr": {"$eq": [{"$size": "$enrollees"}, 0]}}},
-            {"$project": {"_id": 1, "enrollee": 1, "enrollees": 1}},
+            # {
+            #     "$lookup": {
+            #         "from": "PYTHON_TEST_ENROLLEE",
+            #         "localField": "enrollee.refId",
+            #         "foreignField": "_id",
+            #         "as": "enrollees",
+            #         "pipeline": [{"$project": {"_id": 1, "references": 1}}],
+            #     }
+            # },
+            # {"$match": {"$expr": {"$eq": [{"$size": "$enrollees"}, 0]}}},
+            # {"$project": {"_id": 1, "enrollee": 1, "enrollees": 1}},
             {"$count": "count"},
         ]
         # total_count = invoiceBillingsModel.get_model().count_documents(filter={})
@@ -56,40 +66,42 @@ class InvoiceBillingMapEnrolleeSubscriberPatientPatch(BaseEtl):
         print(f"📋 Total Invoice Billings: {total_count}")
         print(f"📦 Total batches: {total_batches}")
 
-        last_visited_batch_id = None
+        # last_visited_batch_id = None
 
         for batch_num in range(total_batches):
             batch_start_time = time.perf_counter()
             print(f"⏳ Processing batch {batch_num + 1} of {total_batches}")
 
             query = (
-                {"_id": {"$gt": last_visited_batch_id}} if last_visited_batch_id else {}
+                {"_id": {"$gt": self.last_visited_batch_id}}
+                if self.last_visited_batch_id
+                else {}
             )
 
             base_query = [
                 {"$match": {**query, "enrollee.refId": {"$exists": True}}},
                 {
-                    "$lookup": {
-                        "from": "PYTHON_TEST_ENROLLEE",
-                        "localField": "enrollee.redId",
-                        "foreignField": "_id",
-                        "as": "enrollees",
-                        "pipeline": [{"$project": {"_id": 1, "references": 1}}],
+                    "$sort": {
+                        "_id": ASCENDING,
                     }
                 },
-                {"$match": {"$expr": {"$eq": [{"$size": "$enrollees"}, 0]}}},
-                {
-                    "$project": {
-                        "_id": 1,
-                        "invoiceBillingNumber": 1,
-                    }
-                },
+                # {
+                #     "$lookup": {
+                #         "from": "PYTHON_TEST_ENROLLEE",
+                #         "localField": "enrollee.redId",
+                #         "foreignField": "_id",
+                #         "as": "enrollees",
+                #         "pipeline": [{"$project": {"_id": 1, "references": 1}}],
+                #     }
+                # },
+                # {"$match": {"$expr": {"$eq": [{"$size": "$enrollees"}, 0]}}},
                 {
                     "$limit": self.batch_size,
                 },
                 {
-                    "$sort": {
-                        "_id": ASCENDING,
+                    "$project": {
+                        "_id": 1,
+                        "invoiceBillingNumber": 1,
                     }
                 },
             ]
@@ -98,10 +110,15 @@ class InvoiceBillingMapEnrolleeSubscriberPatientPatch(BaseEtl):
                 invoiceBillingsModel.get_model().aggregate(pipeline=base_query)
             )
 
+            print(f"🔄 Invoice Billings from DB: {len(invoice_billings_from_db)}")
+
             if len(invoice_billings_from_db) <= 0:
                 break
 
-            last_visited_batch_id = invoice_billings_from_db[-1]["_id"]
+            self.last_visited_batch_id = invoice_billings_from_db[-1]["_id"]
+            print(
+                f"🔄 Last visited batch ID: {self.last_visited_batch_id} with invoice billing number: {invoice_billings_from_db[-1]['invoiceBillingNumber']}"
+            )
 
             invoice_billing_numbers = set[str]()
 
@@ -111,7 +128,12 @@ class InvoiceBillingMapEnrolleeSubscriberPatientPatch(BaseEtl):
                         invoice_billing.get("invoiceBillingNumber")
                     )
 
+            print(
+                f"🔄 Total Unique Invoice Billing Numbers: {len(invoice_billing_numbers)}"
+            )
+
             # fetch ARDB dump invoice billings
+            print(f"🔄 Fetching ARDB dump invoice billings from DB")
             ardb_dump_invoice_billings_from_db = (
                 list[IArdbDumpInvoiceBilling](
                     ardbDumpInvoiceBillingsModel.get_model().find(
@@ -248,8 +270,6 @@ class InvoiceBillingMapEnrolleeSubscriberPatientPatch(BaseEtl):
                                 "dob": 1,
                                 "formattedDob": 1,
                             },
-                            "dob": 1,
-                            "formattedDob": 1,
                             "relationship": 1,
                             "memberId": 1,
                             "ssn": 1,
