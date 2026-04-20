@@ -24,6 +24,9 @@ from src.core.migrate.script.eligibility_update_formatted_dates_patch import (
 from src.core.migrate.script.invoice_billing_map_enrollee_subscriber_patient import (
     InvoiceBillingMapEnrolleeSubscriberPatientPatch,
 )
+from src.core.migrate.script.map_enrollee_patient_subscriber_from_file import (
+    MapEnrolleePatientSubscriberFromFile,
+)
 from src.core.migrate.script.patient_fix_subscriber_name import PatientFixSubscriberName
 from src.core.migrate.script.preserve_ardb_created_updated_dates import (
     PreserveArdbCreatedUpdatedDates,
@@ -41,12 +44,26 @@ class ETLCommand:
     def execute(self, execute: str):
         match execute:
             case "ALL":
-                with Eligibility_Etl_Migrate(Path("input-files/eligibility")) as etl:
-                    etl.execute()
-                with Claim_Rpt_Etl(Path("input-files/claim_rpt")) as etl:
-                    etl.execute()
-                with Provider_Claim_Etl(Path("input-files/provider_claims")) as etl:
-                    etl.execute()
+                # with Eligibility_Etl_Migrate(Path("input-files/eligibility")) as etl:
+                #     etl.execute()
+                # with Claim_Rpt_Etl(Path("input-files/claim_rpt")) as etl:
+                #     etl.execute()
+                # with Provider_Claim_Etl(Path("input-files/provider_claims")) as etl:
+                #     etl.execute()
+                # with ArdbDumpMigrate(Path("input-files/ardb/")) as etl:
+                #     etl.execute()
+
+                # with MapEnrolleePatientSubscriberFromFile(
+                #     Path("input-files/ardb/")
+                # ) as etl:
+                #     etl.execute()
+
+                # with PreserveArdbCreatedUpdatedDates(Path("input-files/ardb/")) as etl:
+                #     etl.execute()
+
+                # with TherapyNote_Etl(Path("input-files/ardb/")) as etl:
+                #     etl.execute()
+                print("Not Support for now, Sorry :(")
 
             case "CLAIM_RPT":
                 with Claim_Rpt_Etl(Path("input-files/claim_rpt")) as etl:
@@ -83,7 +100,7 @@ class ETLCommand:
                     etl.execute()
 
             case "THERAPY_NOTE_MIGRATE":
-                with TherapyNote_Etl(Path("input-files/notes/")) as etl:
+                with TherapyNote_Etl(Path("input-files/ardb/")) as etl:
                     etl.execute()
 
             case "UPDATE_FORMATTED_DATES":
@@ -101,7 +118,7 @@ class ETLCommand:
                     etl.execute()
 
             case "PRESERVE_ARDB_CREATED_AND_UPDATED_DATE":
-                with PreserveArdbCreatedUpdatedDates(Path("input-files/notes/")) as etl:
+                with PreserveArdbCreatedUpdatedDates(Path("input-files/ardb/")) as etl:
                     etl.execute()
 
             case "MOVE_PYTHON_TEST_NOTE_TO_THERAPY_NOTE":
@@ -110,6 +127,12 @@ class ETLCommand:
 
             case "ARDB_DUMP_MIGRATE":
                 with ArdbDumpMigrate(Path("input-files/ardb/")) as etl:
+                    etl.execute()
+
+            case "MAP_ENROLLEE_PATIENT_SUBSCRIBER_FROM_FILE":
+                with MapEnrolleePatientSubscriberFromFile(
+                    Path("input-files/ardb/")
+                ) as etl:
                     etl.execute()
 
             case _:
