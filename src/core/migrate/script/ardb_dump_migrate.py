@@ -12,7 +12,7 @@ from src.shared.interface.migration import InputFileType
 from src.shared.utils.batch import get_total_batch
 from src.shared.utils.dataframe import batch_iterator
 from src.shared.utils.date import format_duration
-from src.shared.utils.migration import verify_and_generate_document
+from src.shared.utils.migration import generate_uuid, verify_and_generate_document
 from src.shared.utils.path import get_input_files_path
 import pandas as pd
 import numpy as np
@@ -31,26 +31,26 @@ class ArdbDumpMigrate(BaseEtl):
                 "model": BaseModel(CollectionName.ARDB_DUMP_INVOICE_BILLINGS),
                 "etl_type": CollectionName.ARDB_DUMP_INVOICE_BILLINGS,
             },
-            {
-                "sheet_name": "BILLING DETAIL",
-                "model": BaseModel(CollectionName.ARDB_DUMP_INVOICE_BILLING_DETAILS),
-                "etl_type": CollectionName.ARDB_DUMP_INVOICE_BILLING_DETAILS,
-            },
-            {
-                "sheet_name": "RECEIPTS",
-                "model": BaseModel(CollectionName.ARDB_DUMP_RECEIPTS),
-                "etl_type": CollectionName.ARDB_DUMP_RECEIPTS,
-            },
-            {
-                "sheet_name": "RECEIPTS DETAIL",
-                "model": BaseModel(CollectionName.ARDB_DUMP_RECEIPT_DETAILS),
-                "etl_type": CollectionName.ARDB_DUMP_RECEIPT_DETAILS,
-            },
-            {
-                "sheet_name": "AUTH",
-                "model": BaseModel(CollectionName.ARDB_DUMP_AUTHORIZATIONS),
-                "etl_type": CollectionName.ARDB_DUMP_AUTHORIZATIONS,
-            },
+            # {
+            #     "sheet_name": "BILLING DETAIL",
+            #     "model": BaseModel(CollectionName.ARDB_DUMP_INVOICE_BILLING_DETAILS),
+            #     "etl_type": CollectionName.ARDB_DUMP_INVOICE_BILLING_DETAILS,
+            # },
+            # {
+            #     "sheet_name": "RECEIPTS",
+            #     "model": BaseModel(CollectionName.ARDB_DUMP_RECEIPTS),
+            #     "etl_type": CollectionName.ARDB_DUMP_RECEIPTS,
+            # },
+            # {
+            #     "sheet_name": "RECEIPTS DETAIL",
+            #     "model": BaseModel(CollectionName.ARDB_DUMP_RECEIPT_DETAILS),
+            #     "etl_type": CollectionName.ARDB_DUMP_RECEIPT_DETAILS,
+            # },
+            # {
+            #     "sheet_name": "AUTH",
+            #     "model": BaseModel(CollectionName.ARDB_DUMP_AUTHORIZATIONS),
+            #     "etl_type": CollectionName.ARDB_DUMP_AUTHORIZATIONS,
+            # },
         ]
         self.etl_type = "ARDB_DUMP_MIGRATE"
 
@@ -110,8 +110,7 @@ class ArdbDumpMigrate(BaseEtl):
                         continue
 
                     print("📊 [START] Loading on data frame")
-                    df = pd.read_excel(file, sheet_name=sheet_name).astype(str)
-                    df.replace({np.nan: None}, inplace=True)
+                    df = pd.read_excel(file, sheet_name=sheet_name, dtype=str)
 
                     total_batches = get_total_batch(df)
                     print(f"📦📦📦 Total batches: {total_batches}")
@@ -139,6 +138,12 @@ class ArdbDumpMigrate(BaseEtl):
                         )
                         chunk["ardbLastModifiedDate"] = file_metadata.get(
                             "ardb_file_processed_at"
+                        )
+
+                        chunk["_id"] = [generate_uuid() for _ in range(len(chunk))]
+
+                        chunk.replace(
+                            {np.nan: None, r"^\s*$": None}, regex=True, inplace=True
                         )
 
                         sheet_name_match["model"].get_model().insert_many(
