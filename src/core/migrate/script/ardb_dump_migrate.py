@@ -31,26 +31,26 @@ class ArdbDumpMigrate(BaseEtl):
                 "model": BaseModel(CollectionName.ARDB_DUMP_INVOICE_BILLINGS),
                 "etl_type": CollectionName.ARDB_DUMP_INVOICE_BILLINGS,
             },
-            # {
-            #     "sheet_name": "BILLING DETAIL",
-            #     "model": BaseModel(CollectionName.ARDB_DUMP_INVOICE_BILLING_DETAILS),
-            #     "etl_type": CollectionName.ARDB_DUMP_INVOICE_BILLING_DETAILS,
-            # },
-            # {
-            #     "sheet_name": "RECEIPTS",
-            #     "model": BaseModel(CollectionName.ARDB_DUMP_RECEIPTS),
-            #     "etl_type": CollectionName.ARDB_DUMP_RECEIPTS,
-            # },
-            # {
-            #     "sheet_name": "RECEIPTS DETAIL",
-            #     "model": BaseModel(CollectionName.ARDB_DUMP_RECEIPT_DETAILS),
-            #     "etl_type": CollectionName.ARDB_DUMP_RECEIPT_DETAILS,
-            # },
-            # {
-            #     "sheet_name": "AUTH",
-            #     "model": BaseModel(CollectionName.ARDB_DUMP_AUTHORIZATIONS),
-            #     "etl_type": CollectionName.ARDB_DUMP_AUTHORIZATIONS,
-            # },
+            {
+                "sheet_name": "BILLING DETAIL",
+                "model": BaseModel(CollectionName.ARDB_DUMP_INVOICE_BILLING_DETAILS),
+                "etl_type": CollectionName.ARDB_DUMP_INVOICE_BILLING_DETAILS,
+            },
+            {
+                "sheet_name": "RECEIPTS",
+                "model": BaseModel(CollectionName.ARDB_DUMP_RECEIPTS),
+                "etl_type": CollectionName.ARDB_DUMP_RECEIPTS,
+            },
+            {
+                "sheet_name": "RECEIPTS DETAIL",
+                "model": BaseModel(CollectionName.ARDB_DUMP_RECEIPT_DETAILS),
+                "etl_type": CollectionName.ARDB_DUMP_RECEIPT_DETAILS,
+            },
+            {
+                "sheet_name": "AUTH",
+                "model": BaseModel(CollectionName.ARDB_DUMP_AUTHORIZATIONS),
+                "etl_type": CollectionName.ARDB_DUMP_AUTHORIZATIONS,
+            },
         ]
         self.etl_type = "ARDB_DUMP_MIGRATE"
 
