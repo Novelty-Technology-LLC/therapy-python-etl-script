@@ -15,12 +15,27 @@ class TherapyNotesModel(BaseModel):
         self._model.create_indexes(
             [
                 IndexModel(
-                    [("references.receiptDetailRef._id", ASCENDING)],
-                    name="idx_references_receipt_detail_ref_id",
+                    [("references.receiptDetailRef.refId", ASCENDING)],
+                    name="references_receipt_detail_ref_id",
+                    background=True,
+                ),
+                IndexModel(
+                    [("references.invoiceBillingDetailRef.refId", ASCENDING)],
+                    name="references_invoice_billing_detail_ref_id",
+                    background=True,
+                ),
+                IndexModel(
+                    [("references.invoiceBillingRef.refId", ASCENDING)],
+                    name="references_invoice_billing_ref_id",
+                    background=True,
+                ),
+                IndexModel(
+                    [("references.module", ASCENDING)],
+                    name="references_module",
                     background=True,
                 ),
             ]
         )
 
 
-therapy_notes_model = TherapyNotesModel(CollectionName.THERAPY_NOTES)
+therapy_notes_model = TherapyNotesModel(CollectionName.PYTHON_TEST_THERAPY_NOTES)

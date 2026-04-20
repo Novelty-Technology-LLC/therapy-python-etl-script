@@ -3,13 +3,32 @@ from datetime import datetime
 import pandas as pd
 
 
-def to_datetime(val):  # noqa: ANN001
+def to_datetime(val, disable_convert=False):  # noqa: ANN001
     """Convert value to datetime; returns None if val is None."""
     if val is None:
         return None
+
+    if disable_convert:
+        if isinstance(val, datetime):
+            return val
+        return pd.to_datetime(val).to_pydatetime()
+
     if isinstance(val, datetime):
-        return val
-    return pd.to_datetime(val).to_pydatetime()
+        return val.tz_localize("America/Chicago").tz_convert("UTC").to_pydatetime()
+
+    return (
+        pd.to_datetime(val)
+        .tz_localize("America/Chicago")
+        .tz_convert("UTC")
+        .to_pydatetime()
+    )
+
+
+def to_utc_datetime(val):
+    """Convert value to UTC datetime; returns None if val is None."""
+    if val is None:
+        return None
+    return pd.to_datetime(val).tz_localize("UTC").to_pydatetime()
 
 
 def format_duration(seconds: float) -> str:

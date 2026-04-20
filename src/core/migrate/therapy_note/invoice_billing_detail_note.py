@@ -1,136 +1,30 @@
 from datetime import datetime
-from pathlib import Path
 import time
-from typing import Any, Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set
 import numpy as np
 import pandas as pd
 from pymongo.operations import UpdateOne
-
-from src.config.config import Config
 from src.core.migrate.base_etl import BaseEtl
-from src.core.migrate.invoice_billing_note.interface import IInvoiceBillingDetailQuery
-from src.core.service.documents.model import documentsModel
+from src.core.migrate.therapy_note.interface import IInvoiceBillingDetailQuery
 from src.core.service.invoice_billing_details.model import invoiceBillingDetailsModel
 from src.core.service.invoice_billings.model import invoiceBillingsModel
 from src.core.service.therapy_notes.entity import ITherapyNote, TherapyNoteProjectModule
 from src.core.service.therapy_notes.model import therapy_notes_model
-from src.shared.constant.constant import BATCH_SIZE, SYSTEM_USER
-from src.shared.interface.document import DocumentStatusEnum
+from src.shared.constant.constant import SYSTEM_USER
 from src.shared.interface.etl.migration import FileMetadata
-from src.shared.interface.migration import InputFileType
-from src.shared.utils.batch import get_total_batch
-from src.shared.utils.dataframe import batch_iterator
 from src.shared.utils.date import (
     format_duration,
     from_string_to_formatted_date,
     to_datetime,
+    to_utc_datetime,
 )
-from src.shared.utils.migration import generate_uuid, verify_and_generate_document
+from src.shared.utils.migration import generate_uuid
 from src.shared.utils.obj import get_obj_value
-from src.shared.utils.path import get_input_files_path
 
 
-class InvoiceBillingDetailNote_Etl(BaseEtl):
-    def __init__(self, input_file_path: Path):
-        super().__init__()
-        self.batch_size = BATCH_SIZE
-        self.input_file_path = input_file_path
-        self.support_duplicate_documents = Config.get_documents().get(
-            "support_duplicate_documents"
-        )
-        self.enable_backup = False
-        self.file_type = InputFileType.EXCEL
-        self.sheet_name = "BILLING DETAIL"
-        self.etl_type = "INVOICE_BILLING_DETAIL_NOTE"
+class InvoiceBillingDetailNote_Etl:
 
-    def execute(self):
-        all_files = get_input_files_path(
-            input_file_path=self.input_file_path, file_type=self.file_type
-        )
-        print(f"📁 Total files: {len(all_files)}")
-
-        for file in all_files:
-            documentId: Optional[str] = None
-            start = time.perf_counter()
-
-            try:
-                print(f"===========📁 [START] Processing file: {file.name} ===========")
-
-                document_response = verify_and_generate_document(
-                    file,
-                    self.support_duplicate_documents,
-                    "ardb-backup/invoice_billing_detail",
-                    self.file_type,
-                    self.enable_backup,
-                    self.etl_type,
-                )
-                if document_response is None:
-                    continue
-
-                documentId = document_response.get("documentId")
-                file_metadata = document_response.get("file_metadata")
-
-                if documentId:
-                    documentsModel.get_model().update_one(
-                        {"_id": documentId},
-                        {"$set": {"status": DocumentStatusEnum.PROCESSING}},
-                    )
-
-                print("===========📊 [START] Load on data frame ===========")
-                data_frame_load_time = time.perf_counter()
-                df = pd.read_excel(
-                    file,
-                    sheet_name=self.sheet_name,
-                    dtype={
-                        "INVOICE_BILLING_ID": str,
-                        "INVOICE_ITEM_NUMBER": str,
-                        "CODE": str,
-                        "DATE_OF_SERVICE": str,
-                        "NOTES": str,
-                        "CREATION_DATE": str,
-                        "LAST_MODIFIED_DATE": str,
-                    },
-                )
-                print(
-                    f"===========📊 [END] Load on data frame in {format_duration(time.perf_counter() - data_frame_load_time)} ==========="
-                )
-
-                total_batches = get_total_batch(df)
-                print(f"📦📦📦 Total batches: {total_batches}")
-
-                for batch_num, chunk in enumerate(batch_iterator(df)):
-                    print(f"Processing batch {batch_num + 1} of {total_batches}")
-                    self._load_data(chunk, file_metadata)
-
-                elapsed = time.perf_counter() - start
-
-                if documentId:
-                    documentsModel.get_model().update_one(
-                        {"_id": documentId},
-                        {"$set": {"status": DocumentStatusEnum.COMPLETED}},
-                    )
-
-                print(
-                    f"==========📁 [END] Processing file: {file.name} in {format_duration(elapsed)} =========="
-                )
-            except Exception as e:
-                print(f"Error processing file: {file.name} - {e}")
-                if documentId:
-                    documentsModel.get_model().update_one(
-                        {"_id": documentId},
-                        {
-                            "$set": {
-                                "status": DocumentStatusEnum.FAILED,
-                                "reason": str(e),
-                            }
-                        },
-                    )
-
-                print(
-                    f"===========📊 [END] Failed to process file: {file.name} in {format_duration(time.perf_counter() - start)} ==========="
-                )
-
-    def _load_data(self, chunk: pd.DataFrame, file_metadata: FileMetadata):
+    def execute(self, chunk: pd.DataFrame, file_metadata: FileMetadata):
         print("===========📊 [START] Load data ===========")
         data_load_time = time.perf_counter()
 
@@ -393,7 +287,7 @@ class InvoiceBillingDetailNote_Etl(BaseEtl):
             "tags": [],
             "linkedDocuments": [],
             "references": {
-                "module": TherapyNoteProjectModule.INVOICE_BILLING,
+                "module": TherapyNoteProjectModule.INVOICE_BILLING_DETAIL,
                 "enrolleeRef": {
                     "refId": get_obj_value(invoice_billing, "enrollee", "refId"),
                     "identificationCode": get_obj_value(
@@ -427,6 +321,8 @@ class InvoiceBillingDetailNote_Etl(BaseEtl):
             },
             "created": {"by": SYSTEM_USER, "at": to_creation_date},
             "updated": {"by": SYSTEM_USER, "at": to_last_modified_date},
+            "ardbCreated": {"by": SYSTEM_USER, "at": to_creation_date},
+            "ardbUpdated": {"by": SYSTEM_USER, "at": to_last_modified_date},
         }
 
     def _build_updated_therapy_note(
@@ -437,9 +333,11 @@ class InvoiceBillingDetailNote_Etl(BaseEtl):
         to_last_modified_date: datetime,
         file_metadata: FileMetadata,
     ) -> ITherapyNote:
-        date_entered_from_db = get_obj_value(therapy_note, "created", "at")
+        date_entered_from_db = to_utc_datetime(
+            get_obj_value(therapy_note, "created", "at")
+        )
 
-        if to_last_modified_date > date_entered_from_db:
+        if to_last_modified_date >= date_entered_from_db:
             return {
                 "_id": therapy_note.get("_id"),
                 "isEdited": False,
@@ -462,7 +360,9 @@ class InvoiceBillingDetailNote_Etl(BaseEtl):
                         "isEdited": therapy_note.get("isEdited"),
                         "locked": therapy_note.get("locked"),
                         "tags": therapy_note.get("tags"),
-                        "updated": therapy_note.get("created"),
+                        "updated": therapy_note.get("updated"),
+                        "ardbCreated": therapy_note.get("ardbCreated"),
+                        "ardbUpdated": therapy_note.get("ardbUpdated"),
                         "ardbSourceDocument": get_obj_value(
                             therapy_note, "references", "ardbSourceDocument"
                         ),
@@ -480,6 +380,8 @@ class InvoiceBillingDetailNote_Etl(BaseEtl):
                         "locked": {"by": SYSTEM_USER, "at": to_last_modified_date},
                         "tags": [],
                         "updated": {"by": SYSTEM_USER, "at": to_last_modified_date},
+                        "ardbCreated": {"by": SYSTEM_USER, "at": to_creation_date},
+                        "ardbUpdated": {"by": SYSTEM_USER, "at": to_last_modified_date},
                         "ardbSourceDocument": get_obj_value(
                             file_metadata, "original_file_name"
                         ),
@@ -496,9 +398,9 @@ class InvoiceBillingDetailNote_Etl(BaseEtl):
         file_metadata: FileMetadata,
     ) -> None:
         """Mutates therapy_note in place: promotes or appends based on date comparison."""
-        existing_date = get_obj_value(therapy_note, "updated", "at")
+        existing_date = to_utc_datetime(get_obj_value(therapy_note, "updated", "at"))
 
-        if to_last_modified_date > existing_date:
+        if to_last_modified_date >= existing_date:
             therapy_note["histories"].append(
                 {
                     "note": therapy_note.get("note"),
@@ -506,6 +408,8 @@ class InvoiceBillingDetailNote_Etl(BaseEtl):
                     "isEdited": therapy_note.get("isEdited"),
                     "tags": therapy_note.get("tags"),
                     "updated": therapy_note.get("updated"),
+                    "ardbCreated": therapy_note.get("ardbCreated"),
+                    "ardbUpdated": therapy_note.get("ardbUpdated"),
                     "ardbSourceDocument": get_obj_value(
                         therapy_note, "references", "ardbSourceDocument"
                     ),
@@ -523,8 +427,13 @@ class InvoiceBillingDetailNote_Etl(BaseEtl):
                     "locked": {"by": SYSTEM_USER, "at": to_last_modified_date},
                     "tags": [],
                     "updated": {"by": SYSTEM_USER, "at": to_last_modified_date},
+                    "ardbCreated": {"by": SYSTEM_USER, "at": to_creation_date},
+                    "ardbUpdated": {"by": SYSTEM_USER, "at": to_last_modified_date},
                     "ardbSourceDocument": get_obj_value(
                         file_metadata, "original_file_name"
                     ),
                 }
             )
+
+
+invoice_billing_detail_note_etl = InvoiceBillingDetailNote_Etl()

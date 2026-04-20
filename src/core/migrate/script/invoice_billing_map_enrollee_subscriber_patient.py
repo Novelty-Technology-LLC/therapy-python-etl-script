@@ -29,7 +29,7 @@ class InvoiceBillingMapEnrolleeSubscriberPatientPatch(BaseEtl):
     def __init__(self):
         super().__init__()
         self.batch_size = BATCH_SIZE
-        self.last_visited_batch_id = "0194bbc8-0eb9-7169-b121-afc8bcc9e340"
+        self.last_visited_batch_id = "0194bbdc-e00d-7041-a465-52402b5e2348"
 
     def execute(self):
         print("🔄 Invoice Billing Map Enrollee Subscriber Patient Patch")

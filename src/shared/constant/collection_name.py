@@ -23,7 +23,7 @@ class CollectionName:
 
     PRODUCTS = "products"
 
-    THERAPY_NOTES = "PYTHON_TEST_THERAPY_NOTES1"
+    PYTHON_TEST_THERAPY_NOTES = "PYTHON_TEST_THERAPY_NOTES"
 
     RECEIPTS = "receipts"
     RECEIPT_DETAILS = "receiptDetails"
@@ -32,6 +32,10 @@ class CollectionName:
     INVOICE_PAYMENT_RECEIPTS = "invoicePaymentReceipts"
 
     ARDB_DUMP_INVOICE_BILLINGS = "ARDB_BILLING"
+    ARDB_DUMP_INVOICE_BILLING_DETAILS = "ARDB_BILLING_DETAIL"
+    ARDB_DUMP_RECEIPTS = "ARDB_RECEIPTS"
+    ARDB_DUMP_RECEIPT_DETAILS = "ARDB_RECEIPTS_DETAIL"
+    ARDB_DUMP_AUTHORIZATIONS = "ARDB_AUTH"
 
     THERAPY_ENROLLEE = "enrollees"
     THERAPY_PATIENT = "patients"
@@ -39,3 +43,4 @@ class CollectionName:
     THERAPY_ELIGIBILITY = "eligibilities"
 
     THERAPY_DOCUMENTS = "documents"
+    THERAPY_NOTES = "therapyNotes"

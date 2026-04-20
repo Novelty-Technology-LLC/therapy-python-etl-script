@@ -3,14 +3,8 @@ from pathlib import Path
 from src.core.migrate.claim_rpt.claim_excel import Claim_Excel_Etl
 from src.core.migrate.claim_rpt.etl import Claim_Rpt_Etl
 from src.core.migrate.excel.eligibility.eligibility import Eligibility_Etl_Migrate
-from src.core.migrate.invoice_billing_note.invoice_billing_detail_note import (
-    InvoiceBillingDetailNote_Etl,
-)
-from src.core.migrate.invoice_billing_note.invoice_billing_note import (
-    InvoiceBillingNote_Etl,
-)
 from src.core.migrate.provider_claim import Provider_Claim_Etl
-from src.core.migrate.receipt_detail_note.etl import ReceiptDetailNote_Etl
+from src.core.migrate.script.ardb_dump_migrate import ArdbDumpMigrate
 from src.core.migrate.script.document_move_python_document_to_therapy import (
     DocumentMovePythonDocumentToTherapy,
 )
@@ -31,9 +25,16 @@ from src.core.migrate.script.invoice_billing_map_enrollee_subscriber_patient imp
     InvoiceBillingMapEnrolleeSubscriberPatientPatch,
 )
 from src.core.migrate.script.patient_fix_subscriber_name import PatientFixSubscriberName
+from src.core.migrate.script.preserve_ardb_created_updated_dates import (
+    PreserveArdbCreatedUpdatedDates,
+)
 from src.core.migrate.script.provider_claim_rpt_change_to_excel import (
     ProviderClaimRptChangeToExcel,
 )
+from src.core.migrate.script.therapy_note_move_from_python_collection_patch import (
+    TherapyNoteMoveFromPythonCollectionPatch,
+)
+from src.core.migrate.therapy_note.etl import TherapyNote_Etl
 
 
 class ETLCommand:
@@ -66,10 +67,6 @@ class ETLCommand:
                 with EligibilityFixProductAndPatientDobPatch() as etl:
                     etl.execute()
 
-            case "RECEIPT_DETAIL_NOTE":
-                with ReceiptDetailNote_Etl(Path("input-files/receipt_detail")) as etl:
-                    etl.execute()
-
             case "PROVIDER_CLAIM_RPT_CHANGE_TO_EXCEL":
                 with ProviderClaimRptChangeToExcel(
                     input_file_path=Path("input-files/claim_rpt/"),
@@ -85,12 +82,8 @@ class ETLCommand:
                 with EligibilityCopyDataToTherapyCollectionPatch() as etl:
                     etl.execute()
 
-            case "INVOICE_BILLING_NOTE":
-                with InvoiceBillingNote_Etl(Path("input-files/notes/")) as etl:
-                    etl.execute()
-
-            case "INVOICE_BILLING_DETAIL_NOTE":
-                with InvoiceBillingDetailNote_Etl(Path("input-files/notes/")) as etl:
+            case "THERAPY_NOTE_MIGRATE":
+                with TherapyNote_Etl(Path("input-files/notes/")) as etl:
                     etl.execute()
 
             case "UPDATE_FORMATTED_DATES":
@@ -105,6 +98,18 @@ class ETLCommand:
 
             case "DOCUMENT_MOVE_PYTHON_DOCUMENT_TO_THERAPY":
                 with DocumentMovePythonDocumentToTherapy() as etl:
+                    etl.execute()
+
+            case "PRESERVE_ARDB_CREATED_AND_UPDATED_DATE":
+                with PreserveArdbCreatedUpdatedDates(Path("input-files/notes/")) as etl:
+                    etl.execute()
+
+            case "MOVE_PYTHON_TEST_NOTE_TO_THERAPY_NOTE":
+                with TherapyNoteMoveFromPythonCollectionPatch() as etl:
+                    etl.execute()
+
+            case "ARDB_DUMP_MIGRATE":
+                with ArdbDumpMigrate(Path("input-files/ardb/")) as etl:
                     etl.execute()
 
             case _:

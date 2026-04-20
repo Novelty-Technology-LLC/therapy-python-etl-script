@@ -1,14 +1,9 @@
 from datetime import datetime
-from pathlib import Path
 import time
-from typing import Any, Dict, List, Optional, Set
+from typing import Dict, Set
 import numpy as np
 import pandas as pd
 from pymongo.operations import UpdateOne
-
-from src.config.config import Config
-from src.core.migrate.base_etl import BaseEtl
-from src.core.service.documents.model import documentsModel
 from src.core.service.invoice_billings.model import invoiceBillingsModel
 from src.core.service.receipt_details.model import receiptDetailsModel
 from src.core.service.therapy_notes.entity import (
@@ -16,120 +11,15 @@ from src.core.service.therapy_notes.entity import (
     TherapyNoteProjectModule,
 )
 from src.core.service.therapy_notes.model import therapy_notes_model
-from src.shared.constant.constant import BATCH_SIZE, SYSTEM_USER
-from src.shared.interface.document import DocumentStatusEnum
+from src.shared.constant.constant import SYSTEM_USER
 from src.shared.interface.etl.migration import FileMetadata
-from src.shared.interface.migration import InputFileType
-from src.shared.utils.batch import get_total_batch
-from src.shared.utils.dataframe import batch_iterator
-from src.shared.utils.date import format_duration, to_datetime
-from src.shared.utils.migration import generate_uuid, verify_and_generate_document
+from src.shared.utils.date import format_duration, to_datetime, to_utc_datetime
+from src.shared.utils.migration import generate_uuid
 from src.shared.utils.obj import get_obj_value
-from src.shared.utils.path import get_input_files_path
 
 
-class ReceiptDetailNote_Etl(BaseEtl):
-    def __init__(self, input_file_path: Path):
-        super().__init__()
-        self.batch_size = BATCH_SIZE
-        self.input_file_path = input_file_path
-        self.support_duplicate_documents = Config.get_documents().get(
-            "support_duplicate_documents"
-        )
-        self.enable_backup = False
-        self.file_type = InputFileType.EXCEL
-        self.sheet_name = "RECEIPTS DETAIL"
-        self.etl_type = "RECEIPT_DETAIL_NOTE"
-
-    def execute(self):
-        all_files = get_input_files_path(
-            input_file_path=self.input_file_path, file_type=self.file_type
-        )
-        print(f"📁 Total files: {len(all_files)}")
-
-        for file in all_files:
-            documentId: Optional[str] = None
-            start = time.perf_counter()
-
-            try:
-                print(f"===========📁 [START] Processing file: {file.name} ===========")
-
-                document_response = verify_and_generate_document(
-                    file,
-                    self.support_duplicate_documents,
-                    "ardb-backup/receipt_detail",
-                    self.file_type,
-                    self.enable_backup,
-                    self.etl_type,
-                )
-                if document_response is None:
-                    continue
-
-                documentId = document_response.get("documentId")
-                file_metadata = document_response.get("file_metadata")
-
-                if documentId:
-                    documentsModel.get_model().update_one(
-                        {"_id": documentId},
-                        {"$set": {"status": DocumentStatusEnum.PROCESSING}},
-                    )
-
-                print("===========📊 [START] Load on data frame ===========")
-                data_frame_load_time = time.perf_counter()
-                df = pd.read_excel(
-                    file,
-                    sheet_name=self.sheet_name,
-                    dtype={
-                        "RECEIPT_DETAIL_ID": str,
-                        "RECEIPT_ID": str,
-                        "INVOICE_BILLING_ID": str,
-                        "INVOICE_ITEM_NUMBER": str,
-                        "PAYMENT_NOTES": str,
-                        "DATE_ENTERED": str,
-                    },
-                )
-
-                print(
-                    f"===========📊 [END] Load on data frame in {format_duration(time.perf_counter() - data_frame_load_time)} ==========="
-                )
-
-                total_batches = get_total_batch(df)
-                print(f"📦📦📦 Total batches: {total_batches}")
-
-                for batch_num, chunk in enumerate(batch_iterator(df)):
-                    print(f"Processing batch {batch_num + 1} of {total_batches}")
-                    self._load_data(chunk, file_metadata)
-
-                elapsed = time.perf_counter() - start
-
-                if documentId:
-                    documentsModel.get_model().update_one(
-                        {"_id": documentId},
-                        {"$set": {"status": DocumentStatusEnum.COMPLETED}},
-                    )
-
-                print(
-                    f"==========📁 [END] Processing file: {file.name} in {format_duration(elapsed)} =========="
-                )
-
-            except Exception as e:
-                print(f"Error processing file: {file.name} - {e}")
-                if documentId:
-                    documentsModel.get_model().update_one(
-                        {"_id": documentId},
-                        {
-                            "$set": {
-                                "status": DocumentStatusEnum.FAILED,
-                                "reason": str(e),
-                            }
-                        },
-                    )
-
-                print(
-                    f"===========📊 [END] Failed to process file: {file.name} in {format_duration(time.perf_counter() - start)} ==========="
-                )
-
-    def _load_data(self, chunk: pd.DataFrame, file_metadata: FileMetadata):
+class ReceiptDetailNote_Etl:
+    def execute(self, chunk: pd.DataFrame, file_metadata: FileMetadata):
         print("===========📊 [START] Load data ===========")
         data_load_time = time.perf_counter()
 
@@ -297,6 +187,9 @@ class ReceiptDetailNote_Etl(BaseEtl):
         inserted_therapy_notes = list(inserted_notes_by_rd_id.values())
         updated_therapy_notes = list(updated_notes_by_rd_id.values())
 
+        print(f"📦📦📦 Inserted therapy notes: {len(inserted_therapy_notes)}")
+        print(f"📦📦📦 Updated therapy notes: {len(updated_therapy_notes)}")
+
         if inserted_therapy_notes:
             therapy_notes_model.insert_many(inserted_therapy_notes)
 
@@ -323,16 +216,18 @@ class ReceiptDetailNote_Etl(BaseEtl):
         file_metadata: FileMetadata,
     ) -> None:
         """Mutates therapy_note in place: promotes or appends based on date comparison."""
-        existing_date = get_obj_value(therapy_note, "created", "at")
+        existing_date = to_utc_datetime(get_obj_value(therapy_note, "created", "at"))
 
-        if to_date_entered > existing_date:
+        if to_date_entered >= existing_date:
             therapy_note["histories"].append(
                 {
                     "note": therapy_note.get("note"),
                     "locked": therapy_note.get("locked"),
                     "isEdited": therapy_note.get("isEdited"),
                     "tags": therapy_note.get("tags"),
-                    "updated": therapy_note.get("created"),
+                    "updated": therapy_note.get("updated"),
+                    "ardbCreated": therapy_note.get("ardbCreated"),
+                    "ardbUpdated": therapy_note.get("ardbUpdated"),
                     "ardbSourceDocument": get_obj_value(
                         therapy_note, "references", "ardbSourceDocument"
                     ),
@@ -342,6 +237,8 @@ class ReceiptDetailNote_Etl(BaseEtl):
             therapy_note["created"] = {"by": SYSTEM_USER, "at": to_date_entered}
             therapy_note["updated"] = {"by": SYSTEM_USER, "at": to_date_entered}
             therapy_note["locked"] = {"by": SYSTEM_USER, "at": to_date_entered}
+            therapy_note["ardbCreated"] = {"by": SYSTEM_USER, "at": to_date_entered}
+            therapy_note["ardbUpdated"] = {"by": SYSTEM_USER, "at": to_date_entered}
         else:
             therapy_note["histories"].append(
                 {
@@ -350,6 +247,8 @@ class ReceiptDetailNote_Etl(BaseEtl):
                     "locked": {"by": SYSTEM_USER, "at": to_date_entered},
                     "tags": [],
                     "updated": {"by": SYSTEM_USER, "at": to_date_entered},
+                    "ardbCreated": {"by": SYSTEM_USER, "at": to_date_entered},
+                    "ardbUpdated": {"by": SYSTEM_USER, "at": to_date_entered},
                     "ardbSourceDocument": get_obj_value(
                         file_metadata, "original_file_name"
                     ),
@@ -402,6 +301,7 @@ class ReceiptDetailNote_Etl(BaseEtl):
                     "identificationCode": get_obj_value(
                         receipt_detail, "procedureCode"
                     ),
+                    "referenceId": get_obj_value(receipt_detail, "referenceId"),
                 },
                 "invoiceBillingDetailRef": {
                     "refId": get_obj_value(receipt_detail, "invoiceBillingDetailId"),
@@ -429,6 +329,8 @@ class ReceiptDetailNote_Etl(BaseEtl):
             },
             "created": {"by": SYSTEM_USER, "at": to_date_entered},
             "updated": {"by": SYSTEM_USER, "at": to_date_entered},
+            "ardbCreated": {"by": SYSTEM_USER, "at": to_date_entered},
+            "ardbUpdated": {"by": SYSTEM_USER, "at": to_date_entered},
         }
 
     def _build_updated_therapy_note(
@@ -438,14 +340,18 @@ class ReceiptDetailNote_Etl(BaseEtl):
         to_date_entered: datetime,
         file_metadata: FileMetadata,
     ) -> ITherapyNote:
-        date_entered_from_db = get_obj_value(therapy_note, "created", "at")
+        date_entered_from_db = to_utc_datetime(
+            get_obj_value(therapy_note, "created", "at")
+        )
 
-        if to_date_entered > date_entered_from_db:
+        if to_date_entered >= date_entered_from_db:
             return {
                 "_id": therapy_note.get("_id"),
                 "isEdited": False,
                 "created": {"by": SYSTEM_USER, "at": to_date_entered},
                 "updated": {"by": SYSTEM_USER, "at": to_date_entered},
+                "ardbCreated": {"by": SYSTEM_USER, "at": to_date_entered},
+                "ardbUpdated": {"by": SYSTEM_USER, "at": to_date_entered},
                 "locked": {"by": SYSTEM_USER, "at": to_date_entered},
                 "linkedDocuments": [],
                 "references": {
@@ -463,7 +369,9 @@ class ReceiptDetailNote_Etl(BaseEtl):
                         "isEdited": therapy_note.get("isEdited"),
                         "locked": therapy_note.get("locked"),
                         "tags": therapy_note.get("tags"),
-                        "updated": therapy_note.get("created"),
+                        "updated": therapy_note.get("updated"),
+                        "ardbCreated": therapy_note.get("ardbCreated"),
+                        "ardbUpdated": therapy_note.get("ardbUpdated"),
                         "ardbSourceDocument": get_obj_value(
                             therapy_note, "references", "ardbSourceDocument"
                         ),
@@ -481,9 +389,14 @@ class ReceiptDetailNote_Etl(BaseEtl):
                         "locked": {"by": SYSTEM_USER, "at": to_date_entered},
                         "tags": [],
                         "updated": {"by": SYSTEM_USER, "at": to_date_entered},
+                        "ardbCreated": {"by": SYSTEM_USER, "at": to_date_entered},
+                        "ardbUpdated": {"by": SYSTEM_USER, "at": to_date_entered},
                         "ardbSourceDocument": get_obj_value(
                             file_metadata, "original_file_name"
                         ),
                     },
                 ],
             }
+
+
+receipt_detail_note_etl = ReceiptDetailNote_Etl()
