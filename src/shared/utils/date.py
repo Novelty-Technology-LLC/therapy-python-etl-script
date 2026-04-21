@@ -24,11 +24,22 @@ def to_datetime(val, disable_convert=False):  # noqa: ANN001
     )
 
 
+# def to_utc_datetime(val):
+#     """Convert value to UTC datetime; returns None if val is None."""
+#     if val is None:
+#         return None
+#     return pd.to_datetime(val).tz_localize("UTC").to_pydatetime()
+
+
 def to_utc_datetime(val):
-    """Convert value to UTC datetime; returns None if val is None."""
     if val is None:
         return None
-    return pd.to_datetime(val).tz_localize("UTC").to_pydatetime()
+    ts = pd.to_datetime(val)
+    if ts.tzinfo is None:
+        ts = ts.tz_localize("UTC")
+    else:
+        ts = ts.tz_convert("UTC")
+    return ts.to_pydatetime()
 
 
 def format_duration(seconds: float) -> str:

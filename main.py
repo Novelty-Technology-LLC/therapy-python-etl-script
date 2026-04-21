@@ -7,7 +7,7 @@ from src.core.command.etl import etl_command
 @click.option(
     "-exec",
     "--execute",
-    default="MAP_ENROLLEE_PATIENT_SUBSCRIBER_FROM_FILE",
+    default="PRESERVE_ARDB_CREATED_AND_UPDATED_DATE",
     type=click.Choice(
         [
             "ALL",  # ❌
