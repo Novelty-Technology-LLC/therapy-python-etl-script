@@ -16,10 +16,12 @@ class EnrolleeAdapter:
         self, enrollees: List[IArdbEnrollee], file_metadata: FileMetadata
     ) -> List[ITherapyEnrollee]:
         """Convert the enrollee dataframe to therapy format"""
-        return [
+        a = [
             enrollee_mapper.to_therapy(enrollee, file_metadata)
             for enrollee in enrollees
         ]
+
+        return a
 
 
 enrollee_adapter = EnrolleeAdapter()

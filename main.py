@@ -7,7 +7,7 @@ from src.core.command.etl import etl_command
 @click.option(
     "-exec",
     "--execute",
-    default="PRESERVE_ARDB_CREATED_AND_UPDATED_DATE",
+    default="ELIGIBILITY",
     type=click.Choice(
         [
             "ALL",  # ❌

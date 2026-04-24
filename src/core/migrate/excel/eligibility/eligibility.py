@@ -44,7 +44,12 @@ from src.shared.interface.etl.sheet_name import SheetName
 from src.shared.interface.migration import InputFileType
 from src.shared.utils.batch import get_total_batch
 from src.shared.utils.dataframe import batch_iterator
-from src.shared.utils.date import format_duration, timeStamp
+from src.shared.utils.date import (
+    format_duration,
+    timeStamp,
+    to_datetime,
+    to_utc_datetime,
+)
 from src.shared.utils.migration import generate_uuid, verify_and_generate_document
 from src.shared.utils.obj import get_obj_value
 from src.shared.utils.path import get_input_files_path
@@ -219,13 +224,11 @@ class Eligibility_Etl_Migrate(BaseEtl):
             # update
             if therapy_enrollee_from_db is not None:
                 enrollee_df.at[index, "_id"] = therapy_enrollee_from_db.get("_id")
-                date_ardb = pd.to_datetime(
+                date_ardb = to_datetime(
                     enrollee_df.at[index, "LAST_MODIFIED_DATE_TIME"],
-                    errors="coerce",
                 )
-                date_therapy = pd.to_datetime(
-                    therapy_enrollee_from_db.get("LAST_MODIFIED_DATE_TIME"),
-                    errors="coerce",
+                date_therapy = to_utc_datetime(
+                    therapy_enrollee_from_db.get("LAST_MODIFIED_DATE_TIME")
                 )
                 has_complete_info = therapy_enrollee_from_db.get(
                     "hasCompleteInfo", False
@@ -394,13 +397,11 @@ class Eligibility_Etl_Migrate(BaseEtl):
             if therapy_subscriber_from_db is not None:
                 subscriber_df.at[index, "_id"] = therapy_subscriber_from_db.get("_id")
 
-                date_ardb = pd.to_datetime(
+                date_ardb = to_datetime(
                     subscriber_df.at[index, "LAST_MODIFIED_DATE_TIME"],
-                    errors="coerce",
                 )
-                date_therapy = pd.to_datetime(
+                date_therapy = to_utc_datetime(
                     get_obj_value(therapy_subscriber_from_db, "updated", "at"),
-                    errors="coerce",
                 )
                 has_complete_info = (
                     False
@@ -557,13 +558,11 @@ class Eligibility_Etl_Migrate(BaseEtl):
                 raw_patient_from_df["_id"] = therapy_patient_from_db.get("_id")
                 raw_patient_from_df["hasCompleteInfo"] = hasCompleteInfo
 
-                date_ardb = pd.to_datetime(
+                date_ardb = to_datetime(
                     patient_df.at[index, "LAST_MODIFIED_DATE_TIME"],
-                    errors="coerce",
                 )
-                date_therapy = pd.to_datetime(
+                date_therapy = to_utc_datetime(
                     get_obj_value(therapy_subscriber_from_db, "updated", "at"),
-                    errors="coerce",
                 )
 
                 if (
@@ -787,13 +786,12 @@ class Eligibility_Etl_Migrate(BaseEtl):
                 raw_eligibility_from_df["_id"] = therapy_eligibility_from_db.get("_id")
                 raw_eligibility_from_df["hasCompleteInfo"] = hasCompleteInfo
 
-                date_ardb = pd.to_datetime(
+                date_ardb = to_datetime(
                     eligibility_df.at[index, "LAST_MODIFIED_DATE_TIME"],
-                    errors="coerce",
                 )
-                date_therapy = pd.to_datetime(
-                    get_obj_value(therapy_eligibility_from_db, "updated", "at"),
-                    errors="coerce",
+
+                date_therapy = to_utc_datetime(
+                    get_obj_value(therapy_eligibility_from_db, "updated", "at")
                 )
 
                 if (

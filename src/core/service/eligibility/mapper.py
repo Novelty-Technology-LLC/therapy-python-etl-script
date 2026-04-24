@@ -53,7 +53,9 @@ class EligibilityMapper:
         )
 
         paid_through_raw = get_obj_value(eligibility, "PAID_THROUGH_DATE")
-        termination_event_raw = get_obj_value(eligibility, "TERMINATION_REASON_EVENT_DATE")
+        termination_event_raw = get_obj_value(
+            eligibility, "TERMINATION_REASON_EVENT_DATE"
+        )
 
         return {
             "_id": get_obj_value(eligibility, "_id"),
@@ -80,9 +82,13 @@ class EligibilityMapper:
             },
             "serviceDate": {
                 "startDate": to_datetime(get_obj_value(eligibility, "EFFECTIVE_DATE")),
-                "formattedStartDate": from_string_to_formatted_date(get_obj_value(eligibility, "EFFECTIVE_DATE")),
+                "formattedStartDate": from_string_to_formatted_date(
+                    get_obj_value(eligibility, "EFFECTIVE_DATE")
+                ),
                 "endDate": to_datetime(get_obj_value(eligibility, "TERMINATION_DATE")),
-                "formattedEndDate": from_string_to_formatted_date(get_obj_value(eligibility, "TERMINATION_DATE")),
+                "formattedEndDate": from_string_to_formatted_date(
+                    get_obj_value(eligibility, "TERMINATION_DATE")
+                ),
             },
             "subscriber": {
                 "refId": get_obj_value(subscriber, "_id"),
@@ -95,8 +101,8 @@ class EligibilityMapper:
                 "firstName": get_obj_value(patient, "demographic", "firstName"),
                 "middleName": get_obj_value(patient, "demographic", "middleName"),
                 "lastName": get_obj_value(patient, "demographic", "lastName"),
-                "dob": to_datetime(get_obj_value(patient, "demographic", "dob")),
-                "formattedDob": from_string_to_formatted_date(get_obj_value(patient, "demographic", "formattedDob")),
+                "dob": get_obj_value(patient, "demographic", "dob"),
+                "formattedDob": get_obj_value(patient, "demographic", "formattedDob"),
                 "relationship": get_obj_value(patient, "relationship"),
                 "name": get_name(
                     {

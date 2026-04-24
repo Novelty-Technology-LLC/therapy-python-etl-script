@@ -59,5 +59,9 @@ def to_formatted_date(date: datetime | None = None) -> str:
     return date.strftime("%m/%d/%Y") if date else None
 
 
-def from_string_to_formatted_date(date: str | None = None) -> str:
+def from_string_to_formatted_date(date: str | None | datetime = None) -> str:
+
+    if isinstance(date, datetime):
+        return to_formatted_date(date)
+
     return to_formatted_date(to_datetime(date)) if date else None

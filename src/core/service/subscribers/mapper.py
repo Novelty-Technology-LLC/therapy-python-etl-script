@@ -189,7 +189,7 @@ class SubscriberMapper:
                 "lastName": get_obj_value(enrollee, "demographic", "lastName"),
                 "firstName": get_obj_value(enrollee, "demographic", "firstName"),
                 "middleName": get_obj_value(enrollee, "demographic", "middleName"),
-                "dob": to_datetime(enrollee_dob),
+                "dob": enrollee_dob,
                 "formattedDob": from_string_to_formatted_date(enrollee_dob),
                 "gender": get_obj_value(enrollee, "demographic", "gender"),
                 "email": get_obj_value(enrollee, "demographic", "email"),
