@@ -133,6 +133,11 @@ class ArdbDumpMigrate(BaseEtl):
                     for batch_num, chunk in enumerate(batch_iterator(df)):
                         print(f"Processing batch {batch_num + 1} of {total_batches}")
                         batch_start_time = time.perf_counter()
+
+                        chunk.replace(
+                            {np.nan: None, r"^\s*$": None}, regex=True, inplace=True
+                        )
+
                         chunk["ardbSourceDocument"] = file_metadata.get(
                             "original_file_name"
                         )
@@ -140,15 +145,13 @@ class ArdbDumpMigrate(BaseEtl):
                             "ardb_file_processed_at"
                         )
 
-                        chunk["_id"] = [generate_uuid() for _ in range(len(chunk))]
+                        records = []
+                        for record in chunk.to_dict("records"):
+                            record["_id"] = generate_uuid()
 
-                        chunk.replace(
-                            {np.nan: None, r"^\s*$": None}, regex=True, inplace=True
-                        )
+                            records.append(record)
 
-                        sheet_name_match["model"].get_model().insert_many(
-                            chunk.to_dict("records")
-                        )
+                        sheet_name_match["model"].get_model().insert_many(records)
 
                         print(
                             f"Processing batch {batch_num + 1} of {total_batches} in {format_duration(time.perf_counter() - batch_start_time)}"

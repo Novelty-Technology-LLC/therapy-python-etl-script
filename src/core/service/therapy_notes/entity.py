@@ -2,6 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, List, Literal, NotRequired, Optional, TypedDict
 
+from src.shared.constant.constant import SYSTEM_USER
 from src.shared.interface.common import (
     AssignerEntity,
     IBaseEntity,
@@ -87,12 +88,12 @@ class ITherapyNote(IBaseEntity, ITherapyNoteInfo, ITherapyHistory[ITherapyHistor
 
 a: ITherapyNote = {
     "_id": "1",
-    "created": {"by": "system", "at": datetime.now()},
-    "updated": {"by": "system", "at": datetime.now()},
+    "created": {"by": SYSTEM_USER, "at": datetime.now()},
+    "updated": {"by": SYSTEM_USER, "at": datetime.now()},
     "note": "This is a test note",
     "tags": ["test", "note"],
     "isEdited": False,
-    "locked": {"by": "system", "at": datetime.now()},
+    "locked": {"by": SYSTEM_USER, "at": datetime.now()},
     "references": {
         "module": TherapyNoteProjectModule.INVOICE_BILLING,
         "subModule": ProjectModule.INVOICE_BILLING_DETAIL,
@@ -140,9 +141,9 @@ a: ITherapyNote = {
             "note": "This is a test note",
             "tags": ["test", "note"],
             "isEdited": False,
-            "locked": {"by": "system", "at": datetime.now()},
+            "locked": {"by": SYSTEM_USER, "at": datetime.now()},
             "updated": {
-                "by": "system",
+                "by": SYSTEM_USER,
                 "at": datetime.now(),
             },
             "ardbSourceDocument": "test.pdf",

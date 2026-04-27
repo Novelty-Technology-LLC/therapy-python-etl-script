@@ -13,6 +13,15 @@ class MongoDbConfigType(TypedDict):
     password: str
 
 
+class DestinationMongoDbConfigType(TypedDict):
+    protocol: str
+    cluster_name: str
+    port: Optional[int]
+    database: str
+    username: str
+    password: str
+
+
 class MongoDbEncryptionVaultConfigType(TypedDict):
     shared_lib_path: str
     collection_name: str
@@ -59,6 +68,22 @@ class Config:
             "database": ConfigMapper.MONGO_DB_NAME,
             "username": quote_plus(ConfigMapper.MONGO_USERNAME),
             "password": quote_plus(ConfigMapper.MONGO_PASSWORD),
+        }
+
+    @staticmethod
+    def get_destination_db() -> DestinationMongoDbConfigType:
+        """Get MongoDB configuration"""
+        return {
+            "protocol": ConfigMapper.DESTINATION_MONGO_DB_PROTOCOL,
+            "cluster_name": ConfigMapper.DESTINATION_MONGO_CLUSTER_NAME,
+            "port": (
+                int(ConfigMapper.DESTINATION_MONGO_DB_PORT)
+                if ConfigMapper.DESTINATION_MONGO_DB_PORT
+                else None
+            ),
+            "database": ConfigMapper.DESTINATION_MONGO_DB_NAME,
+            "username": quote_plus(ConfigMapper.DESTINATION_MONGO_USERNAME),
+            "password": quote_plus(ConfigMapper.DESTINATION_MONGO_PASSWORD),
         }
 
     @staticmethod
@@ -111,6 +136,28 @@ class Config:
             auth = f"{username}:{password}@" if username and password else ""
             port_str = f":{port}" if port else ""
 
+            return f"{protocol}://{auth}{cluster_name}{port_str}/"
+
+    @staticmethod
+    def resolve_destination_uri(use_atlas: bool = True) -> str:
+        """
+        Resolve MongoDB connection URI.
+        """
+        db_config = Config.get_destination_db()
+
+        username = db_config["username"]
+        password = db_config["password"]
+        cluster_name = db_config["cluster_name"]
+
+        if use_atlas:
+            # MongoDB Atlas format
+            return f"mongodb+srv://{username}:{password}@{cluster_name}.mongodb.net/?retryWrites=true&w=majority"
+        else:
+            # Local MongoDB format
+            protocol = db_config["protocol"] or "mongodb"
+            port = db_config["port"]
+            auth = f"{username}:{password}@" if username and password else ""
+            port_str = f":{port}" if port else ""
             return f"{protocol}://{auth}{cluster_name}{port_str}/"
 
     @staticmethod

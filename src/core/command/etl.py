@@ -27,6 +27,7 @@ from src.core.migrate.script.invoice_billing_map_enrollee_subscriber_patient imp
 from src.core.migrate.script.map_enrollee_patient_subscriber_from_file import (
     MapEnrolleePatientSubscriberFromFile,
 )
+from src.core.migrate.script.move_to_destination_db import MoveToDestinationDb
 from src.core.migrate.script.patient_fix_subscriber_name import PatientFixSubscriberName
 from src.core.migrate.script.preserve_ardb_created_updated_dates import (
     PreserveArdbCreatedUpdatedDates,
@@ -133,6 +134,10 @@ class ETLCommand:
                 with MapEnrolleePatientSubscriberFromFile(
                     Path("input-files/ardb/")
                 ) as etl:
+                    etl.execute()
+
+            case "MOVE_TO_DESTINATION_DB":
+                with MoveToDestinationDb() as etl:
                     etl.execute()
 
             case _:

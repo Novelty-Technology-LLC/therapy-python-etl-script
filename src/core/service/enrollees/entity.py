@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from typing import Optional, TypedDict
 
+from src.shared.constant.constant import SYSTEM_USER
 from src.shared.interface.common import (
     IARDBDocumentReference,
     IBaseEntity,
@@ -98,8 +99,8 @@ class ITherapyEnrollee(
 
 enrollee: ITherapyEnrollee = {
     "_id": "1",
-    "created": {"by": "system", "at": datetime.now()},
-    "updated": {"by": "system", "at": datetime.now()},
+    "created": {"by": SYSTEM_USER, "at": datetime.now()},
+    "updated": {"by": SYSTEM_USER, "at": datetime.now()},
     "firstName": "John",
     "middleName": "Doe",
     "lastName": "Smith",
@@ -148,7 +149,7 @@ enrollee: ITherapyEnrollee = {
     "ardbLastModifiedDate": datetime.now(),
     "histories": [
         {
-            "updated": {"by": "system", "at": datetime.now()},
+            "updated": {"by": SYSTEM_USER, "at": datetime.now()},
             "history": {
                 "firstName": "John",
                 "middleName": "Doe",

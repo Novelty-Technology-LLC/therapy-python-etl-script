@@ -53,40 +53,40 @@ class EligibilityUpdateFormattedDatesPatch(BaseEtl):
         super().__init__()
         self.batch_size = BATCH_SIZE
         self.collections: List[IFormattedDatesModel] = [
-            {
-                "name": "Enrollee",
-                "pythonModel": enrolleesModel,
-                "therapyModel": BaseModel(CollectionName.THERAPY_ENROLLEE),
-                "base_query": {
-                    "$or": [
-                        {"demographic.dob": {"$exists": True, "$ne": None}},
-                        {
-                            "additionalInformation.deathDate": {
-                                "$exists": True,
-                                "$ne": None,
-                            }
-                        },
-                    ]
-                },
-            },
-            {
-                "name": "Patient",
-                "pythonModel": patientsModel,
-                "therapyModel": BaseModel(CollectionName.THERAPY_PATIENT),
-                "base_query": {"demographic.dob": {"$exists": True, "$ne": None}},
-            },
-            {
-                "name": "Subscriber",
-                "pythonModel": subscribersModel,
-                "therapyModel": BaseModel(CollectionName.THERAPY_SUBSCRIBER),
-                "base_query": {
-                    "$or": [
-                        {"demographic.dob": {"$exists": True, "$ne": None}},
-                        {"employment.startDate": {"$exists": True, "$ne": None}},
-                        {"employment.endDate": {"$exists": True, "$ne": None}},
-                    ]
-                },
-            },
+            # {
+            #     "name": "Enrollee",
+            #     "pythonModel": enrolleesModel,
+            #     "therapyModel": BaseModel(CollectionName.THERAPY_ENROLLEE),
+            #     "base_query": {
+            #         "$or": [
+            #             {"demographic.dob": {"$exists": True, "$ne": None}},
+            #             {
+            #                 "additionalInformation.deathDate": {
+            #                     "$exists": True,
+            #                     "$ne": None,
+            #                 }
+            #             },
+            #         ]
+            #     },
+            # },
+            # {
+            #     "name": "Patient",
+            #     "pythonModel": patientsModel,
+            #     "therapyModel": BaseModel(CollectionName.THERAPY_PATIENT),
+            #     "base_query": {"demographic.dob": {"$exists": True, "$ne": None}},
+            # },
+            # {
+            #     "name": "Subscriber",
+            #     "pythonModel": subscribersModel,
+            #     "therapyModel": BaseModel(CollectionName.THERAPY_SUBSCRIBER),
+            #     "base_query": {
+            #         "$or": [
+            #             {"demographic.dob": {"$exists": True, "$ne": None}},
+            #             {"employment.startDate": {"$exists": True, "$ne": None}},
+            #             {"employment.endDate": {"$exists": True, "$ne": None}},
+            #         ]
+            #     },
+            # },
             {
                 "name": "Eligibility",
                 "pythonModel": eligibilityModel,
@@ -480,7 +480,7 @@ class EligibilityUpdateFormattedDatesPatch(BaseEtl):
                         update={
                             "$set": {
                                 **(
-                                    {"demographic.formattedDob": formatted_dob}
+                                    {"patient.formattedDob": formatted_dob}
                                     if formatted_dob is not None
                                     else {}
                                 ),
@@ -511,7 +511,8 @@ class EligibilityUpdateFormattedDatesPatch(BaseEtl):
                                     is not None
                                     else {}
                                 ),
-                            }
+                            },
+                            "$unset": {"demographic": 1},
                         },
                     )
                 )

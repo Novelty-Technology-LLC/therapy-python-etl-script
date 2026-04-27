@@ -106,7 +106,7 @@ class ITherapyPatient(
 #     },
 #     'history': [{
 #         'updated': {
-#             'by': 'system',
+#             'by': SYSTEM_USER,
 #             'at': '2026-01-01',
 #         },
 #         'histories': [

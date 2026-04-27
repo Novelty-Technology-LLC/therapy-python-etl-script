@@ -3,6 +3,7 @@ from src.core.service.enrollees.entity import ITherapyEnrollee
 from src.core.service.patients.entity import ITherapyPatient
 from src.core.service.products.entity import ITherapyProduct
 from src.core.service.subscribers.entity import ITherapySubscriber
+from src.shared.constant.constant import SYSTEM_USER
 from src.shared.interface.etl.migration import FileMetadata
 from src.shared.utils.date import from_string_to_formatted_date, to_datetime
 from src.shared.utils.migration import generate_file_metadata
@@ -63,11 +64,11 @@ class EligibilityMapper:
                 eligibility, "hasCompleteInfo", default=True
             ),
             "created": {
-                "by": "system",
+                "by": SYSTEM_USER,
                 "at": to_datetime(get_obj_value(eligibility, "CREATION_DATE")),
             },
             "updated": {
-                "by": "system",
+                "by": SYSTEM_USER,
                 "at": to_datetime(
                     get_obj_value(eligibility, "LAST_MODIFIED_DATE_TIME")
                 ),

@@ -29,7 +29,8 @@ from src.core.command.etl import etl_command
             "MAP_INVOICE_BILLING_DETAIL_STATUS",  # ✅ -> This is used for mapping invoice billing detail status on therapy note (Not completed)
             "MAP_INVOICE_BILLING_STATUS",  # ✅ -> This is used for mapping invoice billing status on therapy note (Not Completed)
             "ARDB_DUMP_MIGRATE",  # ✅ -> This is used for migrating ardb dump data to therapy collection
-            "MAP_ENROLLEE_PATIENT_SUBSCRIBER_FROM_FILE",  # ✅ -> This is used for mapping enrollee, patient, subscriber data from file to therapy collection
+            "MAP_ENROLLEE_PATIENT_SUBSCRIBER_FROM_FILE",  # ✅ -> This is used for mapping enrollee, patient, subscriber data from file to therapy collection,
+            "MOVE_TO_DESTINATION_DB",  # ✅ -> This is used for moving data from python test collection to destination collection
         ]
     ),
     help="ETL execute command",
