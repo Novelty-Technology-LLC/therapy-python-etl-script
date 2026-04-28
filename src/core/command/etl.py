@@ -3,7 +3,8 @@ from pathlib import Path
 from src.core.migrate.claim_rpt.claim_excel import Claim_Excel_Etl
 from src.core.migrate.claim_rpt.etl import Claim_Rpt_Etl
 from src.core.migrate.excel.eligibility.eligibility import Eligibility_Etl_Migrate
-from src.core.migrate.provider_claim import Provider_Claim_Etl
+
+# from src.core.migrate.provider_claim import Provider_Claim_Etl
 from src.core.migrate.script.ardb_dump_migrate import ArdbDumpMigrate
 from src.core.migrate.script.document_move_python_document_to_therapy import (
     DocumentMovePythonDocumentToTherapy,
@@ -11,28 +12,30 @@ from src.core.migrate.script.document_move_python_document_to_therapy import (
 from src.core.migrate.script.eligibility_copy_data_to_therapy_collection import (
     EligibilityCopyDataToTherapyCollectionPatch,
 )
-from src.core.migrate.script.eligibility_fix_product_and_patient_dob_patch import (
+from src.core.migrate.script.deprecated.eligibility_fix_product_and_patient_dob_patch import (
     EligibilityFixProductAndPatientDobPatch,
 )
 
-from src.core.migrate.script.eligibility_map_missing_enrollee_patient_subscriber_and_eligibility_data_patch import (
+from src.core.migrate.script.deprecated.eligibility_map_missing_enrollee_patient_subscriber_and_eligibility_data_patch import (
     EligibilityMapMissingEnrolleePatientSubscriberAndEligibilityDataPatch,
 )
-from src.core.migrate.script.eligibility_update_formatted_dates_patch import (
+from src.core.migrate.script.deprecated.eligibility_update_formatted_dates_patch import (
     EligibilityUpdateFormattedDatesPatch,
 )
-from src.core.migrate.script.invoice_billing_map_enrollee_subscriber_patient import (
-    InvoiceBillingMapEnrolleeSubscriberPatientPatch,
+from src.core.migrate.script.invoice_billing_map_enrollee_subscriber_patient_from_ardb import (
+    InvoiceBillingMapEnrolleeSubscriberPatientFromArdbPatch,
 )
 from src.core.migrate.script.map_enrollee_patient_subscriber_from_file import (
     MapEnrolleePatientSubscriberFromFile,
 )
 from src.core.migrate.script.move_to_destination_db import MoveToDestinationDb
-from src.core.migrate.script.patient_fix_subscriber_name import PatientFixSubscriberName
+from src.core.migrate.script.deprecated.patient_fix_subscriber_name import (
+    PatientFixSubscriberName,
+)
 from src.core.migrate.script.preserve_ardb_created_updated_dates import (
     PreserveArdbCreatedUpdatedDates,
 )
-from src.core.migrate.script.provider_claim_rpt_change_to_excel import (
+from src.core.migrate.script.deprecated.provider_claim_rpt_change_to_excel import (
     ProviderClaimRptChangeToExcel,
 )
 from src.core.migrate.script.therapy_note_move_from_python_collection_patch import (
@@ -93,7 +96,7 @@ class ETLCommand:
                     etl.execute()
 
             case "INVOICE_BILLING_MAP_ENROLLEE_SUBSCRIBER_PATIENT":
-                with InvoiceBillingMapEnrolleeSubscriberPatientPatch() as etl:
+                with InvoiceBillingMapEnrolleeSubscriberPatientFromArdbPatch() as etl:
                     etl.execute()
 
             case "ELIGIBILITY_COPY_DATA_TO_THERAPY_COLLECTION":

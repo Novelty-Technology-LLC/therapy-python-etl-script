@@ -7,7 +7,7 @@ from src.core.command.etl import etl_command
 @click.option(
     "-exec",
     "--execute",
-    default="ELIGIBILITY",
+    default="MOVE_TO_DESTINATION_DB",
     type=click.Choice(
         [
             "ALL",  # ❌

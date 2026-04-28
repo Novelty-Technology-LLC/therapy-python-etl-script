@@ -25,7 +25,7 @@ from src.shared.utils.date import format_duration
 from src.shared.utils.name import get_name
 
 
-class InvoiceBillingMapEnrolleeSubscriberPatientPatch(BaseEtl):
+class InvoiceBillingMapEnrolleeSubscriberPatientFromArdbPatch(BaseEtl):
     def __init__(self):
         super().__init__()
         self.batch_size = BATCH_SIZE

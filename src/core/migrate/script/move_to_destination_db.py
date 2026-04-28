@@ -1,4 +1,4 @@
-from typing import List, TypedDict
+from typing import Any, Dict, List, TypedDict
 from pymongo.collection import Collection
 
 from pymongo import ASCENDING, MongoClient
@@ -6,6 +6,7 @@ from pymongo.database import Database
 from src.config.config import Config
 from src.core.migrate.base_etl import BaseEtl
 
+from src.core.service.documents.model import documentsModel
 from src.core.service.eligibility.model import eligibilityModel
 from src.core.service.enrollees.model import enrolleesModel
 from src.core.service.patients.model import patientsModel
@@ -23,6 +24,7 @@ class ICollectionModel(TypedDict):
     sourceModel: BaseModel
     destinationModel: Collection
     name: str
+    baseQuery: Dict[str, Any]
 
 
 class MoveToDestinationDb(BaseEtl):
@@ -43,73 +45,97 @@ class MoveToDestinationDb(BaseEtl):
         )
 
         self.collections: List[ICollectionModel] = [
+            # {
+            #     "name": "Enrollee",
+            #     "sourceModel": enrolleesModel,
+            #     "destinationModel": self.destination_database[CollectionName.ENROLLEE],
+            #     "baseQuery": {},
+            # },
+            # {
+            #     "name": "Patient",
+            #     "sourceModel": patientsModel,
+            #     "destinationModel": self.destination_database[CollectionName.PATIENTS],
+            #     "baseQuery": {},
+            # },
+            # {
+            #     "name": "Subscriber",
+            #     "sourceModel": subscribersModel,
+            #     "destinationModel": self.destination_database[
+            #         CollectionName.SUBSCRIBER
+            #     ],
+            #     "baseQuery": {},
+            # },
+            # {
+            #     "name": "Eligibility",
+            #     "sourceModel": eligibilityModel,
+            #     "destinationModel": self.destination_database[
+            #         CollectionName.ELIGIBILITY
+            #     ],
+            #     "baseQuery": {},
+            # },
+            # {
+            #     "name": "Enrollee Dump",
+            #     "sourceModel": BaseModel(CollectionName.DUMP_ENROLLEES),
+            #     "destinationModel": self.destination_database[
+            #         CollectionName.DUMP_ENROLLEES
+            #     ],
+            #     "baseQuery": {},
+            # },
+            # {
+            #     "name": "Eligibility Dump",
+            #     "sourceModel": BaseModel(CollectionName.DUMP_ELIGIBILITY),
+            #     "destinationModel": self.destination_database[
+            #         CollectionName.DUMP_ELIGIBILITY
+            #     ],
+            #     "baseQuery": {},
+            # },
+            # {
+            #     "name": "ARDB Billing",
+            #     "sourceModel": BaseModel(CollectionName.ARDB_DUMP_INVOICE_BILLINGS),
+            #     "destinationModel": self.destination_database[
+            #         CollectionName.ARDB_DUMP_INVOICE_BILLINGS
+            #     ],
+            #     "baseQuery": {},
+            # },
+            # {
+            #     "name": "ARDB Billing Detail",
+            #     "sourceModel": BaseModel(
+            #         CollectionName.ARDB_DUMP_INVOICE_BILLING_DETAILS
+            #     ),
+            #     "destinationModel": self.destination_database[
+            #         CollectionName.ARDB_DUMP_INVOICE_BILLING_DETAILS
+            #     ],
+            #     "baseQuery": {},
+            # },
+            # {
+            #     "name": "ARDB Receipts",
+            #     "sourceModel": BaseModel(CollectionName.ARDB_DUMP_RECEIPTS),
+            #     "destinationModel": self.destination_database[
+            #         CollectionName.ARDB_DUMP_RECEIPTS
+            #     ],
+            #     "baseQuery": {},
+            # },
+            # {
+            #     "name": "ARDB Receipts Detail",
+            #     "sourceModel": BaseModel(CollectionName.ARDB_DUMP_RECEIPT_DETAILS),
+            #     "destinationModel": self.destination_database[
+            #         CollectionName.ARDB_DUMP_RECEIPT_DETAILS
+            #     ],
+            #     "baseQuery": {},
+            # },
+            # {
+            #     "name": "ARDB Authorizations",
+            #     "sourceModel": BaseModel(CollectionName.ARDB_DUMP_AUTHORIZATIONS),
+            #     "destinationModel": self.destination_database[
+            #         CollectionName.ARDB_DUMP_AUTHORIZATIONS
+            #     ],
+            #     "baseQuery": {},
+            # },
             {
-                "name": "Enrollee",
-                "sourceModel": enrolleesModel,
-                "destinationModel": self.destination_database[CollectionName.ENROLLEE],
-            },
-            {
-                "name": "Patient",
-                "sourceModel": patientsModel,
-                "destinationModel": self.destination_database[CollectionName.PATIENTS],
-            },
-            {
-                "name": "Subscriber",
-                "sourceModel": subscribersModel,
-                "destinationModel": self.destination_database[
-                    CollectionName.SUBSCRIBER
-                ],
-            },
-            {
-                "name": "Eligibility",
-                "sourceModel": eligibilityModel,
-                "destinationModel": self.destination_database[
-                    CollectionName.ELIGIBILITY
-                ],
-            },
-            {
-                "name": "Enrollee Dump",
-                "sourceModel": BaseModel(CollectionName.DUMP_ENROLLEES),
-                "destinationModel": self.destination_database[
-                    CollectionName.DUMP_ENROLLEES
-                ],
-            },
-            {
-                "name": "Eligibility Dump",
-                "sourceModel": BaseModel(CollectionName.DUMP_ELIGIBILITY),
-                "destinationModel": self.destination_database[
-                    CollectionName.DUMP_ELIGIBILITY
-                ],
-            },
-            {
-                "name": "ARDB Billing",
-                "sourceModel": BaseModel(CollectionName.ARDB_DUMP_INVOICE_BILLINGS),
-                "destinationModel": self.destination_database[
-                    CollectionName.ARDB_DUMP_INVOICE_BILLINGS
-                ],
-            },
-            {
-                "name": "ARDB Billing Detail",
-                "sourceModel": BaseModel(
-                    CollectionName.ARDB_DUMP_INVOICE_BILLING_DETAILS
-                ),
-                "destinationModel": self.destination_database[
-                    CollectionName.ARDB_DUMP_INVOICE_BILLING_DETAILS
-                ],
-            },
-            {
-                "name": "ARDB Receipts",
-                "sourceModel": BaseModel(CollectionName.ARDB_DUMP_RECEIPTS),
-                "destinationModel": self.destination_database[
-                    CollectionName.ARDB_DUMP_RECEIPTS
-                ],
-            },
-            {
-                "name": "ARDB Receipts Detail",
-                "sourceModel": BaseModel(CollectionName.ARDB_DUMP_RECEIPT_DETAILS),
-                "destinationModel": self.destination_database[
-                    CollectionName.ARDB_DUMP_RECEIPT_DETAILS
-                ],
+                "name": "Python Test Documents",
+                "sourceModel": documentsModel,
+                "destinationModel": self.destination_database[CollectionName.DOCUMENTS],
+                "baseQuery": {},
             },
         ]
 
@@ -139,6 +165,7 @@ class MoveToDestinationDb(BaseEtl):
                         if last_visited_batch_id
                         else {}
                     ),
+                    **modelCollections.get("baseQuery"),
                 }
 
                 source_data = list(
