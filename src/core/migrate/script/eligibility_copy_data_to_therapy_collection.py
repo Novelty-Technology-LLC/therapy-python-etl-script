@@ -46,7 +46,7 @@ class EligibilityCopyDataToTherapyCollectionPatch(BaseEtl):
                 "therapyModel": BaseModel(CollectionName.THERAPY_ELIGIBILITY),
             },
         ]
-        self.flush_data = False
+        self.flush_data = True
 
     def execute(self):
         etl_start_time = time.perf_counter()
