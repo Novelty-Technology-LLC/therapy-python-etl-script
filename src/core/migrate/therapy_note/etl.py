@@ -127,13 +127,14 @@ class TherapyNote_Etl(BaseEtl):
                         ),
                         None,
                     )
-                    etl_type = sheet_name_match["etl_type"]
-                    module = sheet_name_match["module"]
-                    dtype = sheet_name_match["dtype"]
 
                     if sheet_name_match is None:
                         print(f"❌ Sheet does not match: {sheet_name}")
                         continue
+
+                    etl_type = sheet_name_match["etl_type"]
+                    module = sheet_name_match["module"]
+                    dtype = sheet_name_match["dtype"]
 
                     print("📊 [START] Loading on data frame")
                     df = pd.read_excel(file, sheet_name=sheet_name, dtype=dtype)
