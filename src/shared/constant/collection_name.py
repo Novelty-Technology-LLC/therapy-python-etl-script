@@ -44,3 +44,5 @@ class CollectionName:
 
     THERAPY_DOCUMENTS = "documents"
     THERAPY_NOTES = "therapyNotes"
+
+    THERAPY_PROVIDERS = "therapyProviders"

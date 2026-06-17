@@ -5,6 +5,9 @@ from src.core.migrate.claim_rpt.etl import Claim_Rpt_Etl
 from src.core.migrate.excel.eligibility.eligibility import Eligibility_Etl_Migrate
 
 # from src.core.migrate.provider_claim import Provider_Claim_Etl
+from src.core.migrate.map_provider_to_billing_and_payment.provider_map_to_billing_and_payment import (
+    ProviderMapToBillingAndPayment,
+)
 from src.core.migrate.script.ardb_dump_migrate import ArdbDumpMigrate
 from src.core.migrate.script.document_move_python_document_to_therapy import (
     DocumentMovePythonDocumentToTherapy,
@@ -141,6 +144,10 @@ class ETLCommand:
 
             case "MOVE_TO_DESTINATION_DB":
                 with MoveToDestinationDb() as etl:
+                    etl.execute()
+
+            case "PROVIDER_MAP_TO_BILLING_AND_PAYMENT":
+                with ProviderMapToBillingAndPayment(Path("input-files/ardb/")) as etl:
                     etl.execute()
 
             case _:
