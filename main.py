@@ -7,7 +7,7 @@ from src.core.command.etl import etl_command
 @click.option(
     "-exec",
     "--execute",
-    default="PROVIDER_MAP_TO_BILLING_AND_PAYMENT",
+    default="CREATE_ARDB_FILE_FOR_MISMATCHED_SERVICE_LINE",
     type=click.Choice(
         [
             "ALL",  # ❌
@@ -32,6 +32,7 @@ from src.core.command.etl import etl_command
             "MAP_ENROLLEE_PATIENT_SUBSCRIBER_FROM_FILE",  # ✅ -> This is used for mapping enrollee, patient, subscriber data from file to therapy collection,
             "MOVE_TO_DESTINATION_DB",  # ✅ -> This is used for moving data from python test collection to destination collection
             "PROVIDER_MAP_TO_BILLING_AND_PAYMENT",  # ✅ -> This is used for mapping provider to billing and payment
+            "CREATE_ARDB_FILE_FOR_MISMATCHED_SERVICE_LINE",  # ✅ -> This is used for creating ardb file for mismatched service line
         ]
     ),
     help="ETL execute command",
