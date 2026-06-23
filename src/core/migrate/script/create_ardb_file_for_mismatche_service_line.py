@@ -11,6 +11,7 @@ from src.shared.interface.document import DocumentStatusEnum
 from src.shared.interface.migration import InputFileType
 from src.shared.utils.date import format_duration
 from src.shared.utils.migration import verify_and_generate_document
+from src.shared.utils.obj import get_obj_value
 from src.shared.utils.path import get_input_files_path
 import pandas as pd
 from datetime import datetime
@@ -119,10 +120,13 @@ class CreateArdbFileForMismatchedServiceLine(BaseEtl):
         )
 
         for invoice_billing_number in invoice_billing_numbers_from_db:
-            if invoice_billing_number.get("invoiceBillingNumber"):
-                self.mismatched_invoice_billing_ids.add(
-                    invoice_billing_number.get("invoiceBillingNumber")
-                )
+
+            invoice_billing_number = get_obj_value(
+                invoice_billing_number, "invoiceBillingNumber"
+            )
+
+            if invoice_billing_number:
+                self.mismatched_invoice_billing_ids.append(invoice_billing_number)
 
     def execute(self):
         print(f"🔄 [START] Create Ardb File for Mismatched Service Line ETL")
