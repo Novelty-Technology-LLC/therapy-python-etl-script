@@ -9,6 +9,9 @@ from src.core.migrate.map_provider_to_billing_and_payment.provider_map_to_billin
     ProviderMapToBillingAndPayment,
 )
 from src.core.migrate.script.ardb_dump_migrate import ArdbDumpMigrate
+from src.core.migrate.script.create_ardb_file_for_mismatche_service_line import (
+    CreateArdbFileForMismatchedServiceLine,
+)
 from src.core.migrate.script.document_move_python_document_to_therapy import (
     DocumentMovePythonDocumentToTherapy,
 )
@@ -148,6 +151,12 @@ class ETLCommand:
 
             case "PROVIDER_MAP_TO_BILLING_AND_PAYMENT":
                 with ProviderMapToBillingAndPayment(Path("input-files/ardb/")) as etl:
+                    etl.execute()
+
+            case "CREATE_ARDB_FILE_FOR_MISMATCHED_SERVICE_LINE":
+                with CreateArdbFileForMismatchedServiceLine(
+                    Path("input-files/ardb/")
+                ) as etl:
                     etl.execute()
 
             case _:
