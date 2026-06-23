@@ -4,7 +4,7 @@ from typing import List, Optional, Set
 from src.config.config import Config
 from src.core.migrate.base_etl import BaseEtl
 from src.core.service.documents.model import documentsModel
-from src.core.service.invoice_billings.model import invoiceBillingsModel
+from src.core.service.invoice_billing_details.model import invoiceBillingDetailsModel
 from src.core.service.therapy_notes.entity import TherapyNoteProjectModule
 from src.shared.constant.constant import BATCH_SIZE
 from src.shared.interface.document import DocumentStatusEnum
@@ -115,7 +115,7 @@ class CreateArdbFileForMismatchedServiceLine(BaseEtl):
         ]
 
         invoice_billing_numbers_from_db = list(
-            invoiceBillingsModel.get_model().aggregate(pipeline)
+            invoiceBillingDetailsModel.get_model().aggregate(pipeline)
         )
 
         for invoice_billing_number in invoice_billing_numbers_from_db:
