@@ -9,7 +9,7 @@ class TherapyNotesModel(BaseModel):
 
     def __init__(self, collection_name: CollectionName) -> None:
         super().__init__(collection_name)
-        self._ensure_indexes()
+        # self._ensure_indexes()
 
     def _ensure_indexes(self) -> None:
         self._model.create_indexes(
@@ -38,4 +38,4 @@ class TherapyNotesModel(BaseModel):
         )
 
 
-therapy_notes_model = TherapyNotesModel(CollectionName.PYTHON_TEST_THERAPY_NOTES)
+therapy_notes_model = TherapyNotesModel(CollectionName.THERAPY_NOTES)
