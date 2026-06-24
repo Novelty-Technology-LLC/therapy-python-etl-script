@@ -10,3 +10,4 @@ class ProjectModule(StrEnum):
     INVOICE_PAYMENT_RECEIPT = "Invoice Payment Receipt"
     RECEIPT_DETAIL = "Receipt Detail"
     TASK = "Task"
+    THERAPY_NOTE = "Therapy Note"

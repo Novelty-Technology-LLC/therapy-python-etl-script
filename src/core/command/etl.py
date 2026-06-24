@@ -44,6 +44,9 @@ from src.core.migrate.script.preserve_ardb_created_updated_dates import (
 from src.core.migrate.script.deprecated.provider_claim_rpt_change_to_excel import (
     ProviderClaimRptChangeToExcel,
 )
+from src.core.migrate.script.remove_mismatch_assigned_number_invoice_billing import (
+    RemoveMismatchAssignedNumberInvoiceBilling,
+)
 from src.core.migrate.script.therapy_note_move_from_python_collection_patch import (
     TherapyNoteMoveFromPythonCollectionPatch,
 )
@@ -157,6 +160,10 @@ class ETLCommand:
                 with CreateArdbFileForMismatchedServiceLine(
                     Path("input-files/ardb/")
                 ) as etl:
+                    etl.execute()
+
+            case "REMOVE_MISMATCH_ASSIGNED_NUMBER_INVOICE_BILLING":
+                with RemoveMismatchAssignedNumberInvoiceBilling() as etl:
                     etl.execute()
 
             case _:
