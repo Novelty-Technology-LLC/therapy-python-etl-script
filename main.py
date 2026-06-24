@@ -7,7 +7,7 @@ from src.core.command.etl import etl_command
 @click.option(
     "-exec",
     "--execute",
-    default="CREATE_ARDB_FILE_FOR_MISMATCHED_SERVICE_LINE",
+    default="REMOVE_MISMATCH_ASSIGNED_NUMBER_INVOICE_BILLING",
     type=click.Choice(
         [
             "ALL",  # ❌
@@ -33,6 +33,7 @@ from src.core.command.etl import etl_command
             "MOVE_TO_DESTINATION_DB",  # ✅ -> This is used for moving data from python test collection to destination collection
             "PROVIDER_MAP_TO_BILLING_AND_PAYMENT",  # ✅ -> This is used for mapping provider to billing and payment
             "CREATE_ARDB_FILE_FOR_MISMATCHED_SERVICE_LINE",  # ✅ -> This is used for creating ardb file for mismatched service line
+            "REMOVE_MISMATCH_ASSIGNED_NUMBER_INVOICE_BILLING",  # ✅ -> This is used for removing mismatch assigned number invoice billing
         ]
     ),
     help="ETL execute command",
