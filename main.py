@@ -7,7 +7,7 @@ from src.core.command.etl import etl_command
 @click.option(
     "-exec",
     "--execute",
-    default="REMOVE_MISMATCH_ASSIGNED_NUMBER_INVOICE_BILLING",
+    default="CREATE_ARDB_FILE_FOR_MISMATCHED_SERVICE_LINE",
     type=click.Choice(
         [
             "ALL",  # ❌
