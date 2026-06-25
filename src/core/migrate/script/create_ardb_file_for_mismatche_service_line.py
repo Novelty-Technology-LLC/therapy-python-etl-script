@@ -137,8 +137,8 @@ class CreateArdbFileForMismatchedServiceLine(BaseEtl):
         )
         print(f"📁 Total files: {len(all_files)}")
 
-        if len(all_files):
-            self.find_mismatched_invoice_billing_ids()
+        # if len(all_files):
+        #     self.find_mismatched_invoice_billing_ids()
 
         if len(self.mismatched_invoice_billing_ids):
             print(
@@ -202,9 +202,7 @@ class CreateArdbFileForMismatchedServiceLine(BaseEtl):
                     dtype = sheet_name_match["dtype"]
 
                     print("📊 [START] Loading on data frame")
-                    df = pd.read_excel(
-                        file, sheet_name=sheet["sheet_name"], dtype=dtype
-                    )
+                    df = pd.read_excel(file, sheet_name=sheet["sheet_name"], dtype=str)
 
                     self._load_data(
                         df, etl_type, module, documentId, file.name, sheet["sheet_name"]

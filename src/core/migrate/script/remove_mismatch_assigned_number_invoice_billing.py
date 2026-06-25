@@ -20,7 +20,7 @@ class RemoveMismatchAssignedNumberInvoiceBilling(BaseEtl):
         self.support_duplicate_documents = Config.get_documents().get(
             "support_duplicate_documents"
         )
-        self.mismatched_invoice_billing_ids: List[str] = ["3331950"]
+        self.mismatched_invoice_billing_ids: List[str] = []
         self.modules: List[ProjectModule] = [
             ProjectModule.INVOICE_BILLING,
             ProjectModule.INVOICE_BILLING_DETAIL,
