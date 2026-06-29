@@ -12,6 +12,9 @@ from src.core.migrate.script.ardb_dump_migrate import ArdbDumpMigrate
 from src.core.migrate.script.create_ardb_file_for_mismatche_service_line import (
     CreateArdbFileForMismatchedServiceLine,
 )
+from src.core.migrate.script.create_ardb_file_for_missing_authorization import (
+    CreateArdbFileForMissingAuthorization,
+)
 from src.core.migrate.script.document_move_python_document_to_therapy import (
     DocumentMovePythonDocumentToTherapy,
 )
@@ -164,6 +167,12 @@ class ETLCommand:
 
             case "REMOVE_MISMATCH_ASSIGNED_NUMBER_INVOICE_BILLING":
                 with RemoveMismatchAssignedNumberInvoiceBilling() as etl:
+                    etl.execute()
+
+            case "CREATE_ARDB_FILE_FOR_MISSING_AUTHORIZATION":
+                with CreateArdbFileForMissingAuthorization(
+                    Path("input-files/ardb/")
+                ) as etl:
                     etl.execute()
 
             case _:

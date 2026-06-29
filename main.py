@@ -7,7 +7,7 @@ from src.core.command.etl import etl_command
 @click.option(
     "-exec",
     "--execute",
-    default="CREATE_ARDB_FILE_FOR_MISMATCHED_SERVICE_LINE",
+    default="CREATE_ARDB_FILE_FOR_MISSING_AUTHORIZATION",
     type=click.Choice(
         [
             "ALL",  # ❌
@@ -34,6 +34,7 @@ from src.core.command.etl import etl_command
             "PROVIDER_MAP_TO_BILLING_AND_PAYMENT",  # ✅ -> This is used for mapping provider to billing and payment
             "CREATE_ARDB_FILE_FOR_MISMATCHED_SERVICE_LINE",  # ✅ -> This is used for creating ardb file for mismatched service line
             "REMOVE_MISMATCH_ASSIGNED_NUMBER_INVOICE_BILLING",  # ✅ -> This is used for removing mismatch assigned number invoice billing
+            "CREATE_ARDB_FILE_FOR_MISSING_AUTHORIZATION",  # ✅ -> This is used for creating ardb file for missing authorization
         ]
     ),
     help="ETL execute command",

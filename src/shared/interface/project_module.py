@@ -11,3 +11,4 @@ class ProjectModule(StrEnum):
     RECEIPT_DETAIL = "Receipt Detail"
     TASK = "Task"
     THERAPY_NOTE = "Therapy Note"
+    AUTHORIZATION = "Authorization"
