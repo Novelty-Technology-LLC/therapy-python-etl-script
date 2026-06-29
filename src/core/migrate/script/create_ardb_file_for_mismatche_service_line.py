@@ -137,8 +137,8 @@ class CreateArdbFileForMismatchedServiceLine(BaseEtl):
         )
         print(f"📁 Total files: {len(all_files)}")
 
-        # if len(all_files):
-        #     self.find_mismatched_invoice_billing_ids()
+        if len(all_files):
+            self.find_mismatched_invoice_billing_ids()
 
         if len(self.mismatched_invoice_billing_ids):
             print(

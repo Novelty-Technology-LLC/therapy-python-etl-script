@@ -83,7 +83,7 @@ class RemoveMismatchAssignedNumberInvoiceBilling(BaseEtl):
     def execute(self):
         print(f"🔄 [START] Remove Mismatch Assigned Number Invoice Billing")
 
-        # self.find_mismatched_invoice_billing_ids()
+        self.find_mismatched_invoice_billing_ids()
 
         if len(self.mismatched_invoice_billing_ids):
             print(
